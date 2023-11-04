@@ -20,16 +20,18 @@ class TokenType(Enum):
     MULT      = object()
     DIV       = object()
     EQUALS    = object()
+    COLON     = object()
+    COMMA     = object()
 
     DOT       = object()
 
 
 class Token:
-    def __init__(self, type: TokenType, value: str) -> None:
+    def __init__(self, type: TokenType, value: str = None) -> None:
         self.type = type
         self.value = value
     
     def __repr__(self) -> str:
         if self.value: 
-            return f'{self.type} : {self.value}'
-        return f'{self.type}'
+            return f'[{self.type} : {self.value}]'
+        return f'[{self.type}]'
