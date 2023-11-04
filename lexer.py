@@ -1,36 +1,33 @@
 from tokens import Token, TokenType
 
+#########################################################
+######################## LEXER ##########################
+#########################################################
+'''
+TO USE:
+    Create an instance of the Lexer by passing in a program as a string. Calling the tokenize() method on that instance 
+    will return a list of tokens created from that text.
+
+    If an invalid character is reached, tokenize() will instead return an error
+'''
+class InvalidCharacterError(Exception):
+    pass
+
 class Lexer:
+    letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
+    numbers = ['0','1','2','3','4','5','6','7','8','9']
+        
     def __init__(self, text: str) -> None:
         self.text = text
         self.pos = 0
         self.tokens = []
         self.lineCount = 1
-        self.letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
-        self.numbers = ['0','1','2','3','4','5','6','7','8','9']
         self.word = ""
         self.number = ""
+        self.prevLinesSum = 0
 
     def __repr__(self) -> str:
         return self.tokens
-
-    def makeNumber(self):
-        while self.text[self.pos] in self.numbers:
-            self.number += self.text[self.pos]
-            self.pos += 1
-        token = Token(TokenType.INT, self.number)
-        self.number = ""
-        return token
-    def makeWord(self):
-        while self.text[self.pos] in self.letters:
-            self.word += self.text[self.pos]
-            self.pos += 1
-        token = Token(TokenType.STR, self.word)
-        self.word = ""
-        return token
-
-    def advance(self):
-        self.pos += 1
         
     def makeToken(self):
         token = None
@@ -66,6 +63,7 @@ class Lexer:
         elif current_char == "\n":
             self.lineCount += 1
             self.pos += 1
+            self.prevLinesSum = self.pos
             return
         elif current_char == "+":
             token = Token(TokenType.PLUS) 
@@ -98,15 +96,18 @@ class Lexer:
         
 
         if token == None:
-            raise SyntaxError(f'Invalid character \"{current_char}\" on line {self.lineCount} position {self.pos+1}')
+            raise InvalidCharacterError(f'\nInvalidCharacterError: line {self.lineCount}, position {self.pos-self.prevLinesSum + 1}\n   \"{current_char}\" is not part of the language\n')
         self.tokens.append(token) 
         self.pos += 1
 
     def tokenize(self) -> list[Token]:
         while self.pos < len(self.text):
-            self.makeToken()
+            try:
+                self.makeToken()
+            except InvalidCharacterError as e:
+                return e
         return self.tokens
 
-lexer = Lexer("so, here is an equation: (4*(5-2))")
+lexer = Lexer("so, here is an& equation: (4*(5-2))")
 
 print(lexer.tokenize())
