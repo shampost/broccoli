@@ -25,6 +25,8 @@ class TokenType(Enum):
 
     DOT       = object()
 
+    EOF       = object()
+
 
 class Token:
     def __init__(self, type: TokenType, value: str = None) -> None:
@@ -33,5 +35,5 @@ class Token:
     
     def __repr__(self) -> str:
         if self.value: 
-            return f'[{self.type} : {self.value}]'
-        return f'[{self.type}]'
+            return f'({self.type} : {self.value})'
+        return f'({self.type})'

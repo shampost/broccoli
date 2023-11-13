@@ -1,24 +1,14 @@
-class Token:
-    def __init__(self, type, value=None):
-        self.type = type
-        self.value = value
+from tokens import Token, TokenType
+from errors import InvalidCharacterError, InvalidInputError
 
-    def __repr__(self):
-        # This can be reverted back to f' format. Same thing.
-        return 'Token({type}, {value})'.format(
-            type=self.type,
-            value=repr(self.value)
-        )
 
 class Lexer:
-    def __init__(self, text):
+    def __init__(self, text: str):
         self.text = text
         self.pos = 0
         self.current_char = self.text[self.pos]
         self.tokens = []
-
-    def error(self):
-        raise Exception('Invalid character')
+        self.lineCount = 0
 
     def advance(self):
         self.pos += 1
@@ -27,43 +17,93 @@ class Lexer:
         else:
             self.current_char = None
 
-    def integer(self):
+    def number(self):
         result = ''
         while self.current_char is not None and self.current_char.isdigit():
             result += self.current_char
             self.advance()
-        return int(result)
+        if self.current_char == ".": 
+            result += "."
+            self.advance()
+            result += str(self.number())
+        if "." in result:
+            return float(result)
+        else:
+            try:
+                return int(result)
+            except:
+                raise InvalidInputError(f'\nInvalidInputError: line {self.lineCount}, position {self.pos}\n   No valid token for \"{self.text[self.pos-2:self.pos+1]}\"\n')
 
-    #def string(self):
-        #result = ''
-        #while self.current_char is not None and self.current_char.ischar():
-            #result += self.current_char
-            #self.advance()
-        #return result
+    def string(self):
+        result = ''
+        while self.current_char is not None and self.current_char.isalpha():
+            result += self.current_char
+            self.advance()
+        return result
 
     def get_next_token(self):
-        while self.current_char is not None:
-            if self.current_char.isspace():
-                self.advance()
-                continue
-            if self.current_char.isdigit():
-                return Token('INTEGER', self.integer())
-            if self.current_char == '+':
-                self.advance()
-                return Token('PLUS', '+')
-            if self.current_char == '-':
-                self.advance()
-                return Token('MINUS', '-')
-            if self.current_char == '*':
-                self.advance()
-                return Token('MULTIPLY', '*')
-            if self.current_char == '/':
-                self.advance()
-                return Token('DIVIDE', '/')
-            self.error()
-        return Token('EOF', None)
+        if self.current_char.isdigit():
+            num = self.number()
+            tokenType = TokenType.INT if type(num) == int else TokenType.FLOAT
+            return Token(tokenType, num)
+        if self.current_char.isalpha():
+            return Token(TokenType.STR, self.string())
+        if self.current_char == '+':
+            self.advance()
+            return Token(TokenType.PLUS) 
+        if self.current_char == '-':
+            self.advance()
+            return Token(TokenType.MINUS) 
+        if self.current_char == '*':
+            self.advance()
+            return Token(TokenType.MULT) 
+        if self.current_char == '/':
+            self.advance()
+            return Token(TokenType.DIV) 
+        elif self.current_char == "=":
+            self.advance()
+            return Token(TokenType.EQUALS)
+        elif self.current_char == ":":
+            self.advance()
+            return Token(TokenType.COLON)
+        elif self.current_char == ",":
+            self.advance()
+            return Token(TokenType.COMMA)
+        elif self.current_char == "(":
+            self.advance()
+            return Token(TokenType.LPAREN) 
+        elif self.current_char == ")":
+            self.advance()
+            return Token(TokenType.RPAREN)
+        elif self.current_char == "{":
+            self.advance()
+            return Token(TokenType.LCURL)
+        elif self.current_char == "}":
+            self.advance()
+            return Token(TokenType.RCURL)
+        elif self.current_char == "[":
+            self.advance()
+            return Token(TokenType.LBRACKET)
+        elif self.current_char == "]":
+            self.advance()
+            return Token(TokenType.RBRACKET)
+        elif self.current_char == "\"":
+            self.advance()
+            return Token(TokenType.QUOTE)
+        raise InvalidCharacterError(f'\nInvalidCharacterError: line {self.lineCount}, position {self.pos}\n   \"{self.current_char}\" is not part of the language\n')
     
     def tokenize(self):
         while self.pos < len(self.text):
-            self.tokens.append(self.get_next_token())
+            if self.current_char.isspace():
+                self.advance()
+                continue
+            elif self.current_char == "\n": #This doesnt work
+                self.lineCount += 1
+                self.advance()
+                print(self.lineCount)
+                continue
+            try:
+                self.tokens.append(self.get_next_token())
+            except Exception as e:
+                return e
         return self.tokens
