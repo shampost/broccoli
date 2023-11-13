@@ -4,6 +4,7 @@ class Token:
         self.value = value
 
     def __repr__(self):
+        # This can be reverted back to f' format. Same thing.
         return 'Token({type}, {value})'.format(
             type=self.type,
             value=repr(self.value)
