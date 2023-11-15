@@ -1,5 +1,5 @@
 from tokens import Token, TokenType
-from errors import InvalidCharacterError, InvalidInputError
+from errors import InvalidCharacterException, NoValidTokenException
 
 
 class Lexer:
@@ -8,15 +8,25 @@ class Lexer:
         self.pos = 0
         self.current_char = self.text[self.pos]
         self.tokens = []
-        self.lineCount = 0
+        self.lineCount = 1
 
-    def advance(self):
-        self.pos += 1
+    def advance(self, by: int = 1):
+        self.pos += by
         if self.pos < len(self.text):
             self.current_char = self.text[self.pos]
         else:
             self.current_char = None
 
+    '''
+    DOCSTRING: The number() function is recursive and has 4 parts:
+        1. While the current_char is a digit, it will be appended to 'result'
+        2. If a decimal point is enountered, it is appended along with a recursive call to number()
+        3. If the result contains a decimal point, the float number is returned
+        4. Otherwise, it is either an integer, or the numbers past the decimal point in one of the recursions. Either way
+            the int value can be returned.
+    The else block contains error handling for the edge case of an input like "44.hi" which would raise a NoValidTokenError.
+    All errors are caught and returned in the tokenize method.
+    '''
     def number(self):
         result = ''
         while self.current_char is not None and self.current_char.isdigit():
@@ -27,18 +37,23 @@ class Lexer:
             self.advance()
             result += str(self.number())
         if "." in result:
-            return float(result)
+            try:
+                return float(result)
+            except:
+                raise NoValidTokenException(f'\nNoValidTokenError on line {self.lineCount}\n   Cannot create a token for \"{result}\"\n')
         else:
             try:
+                self.advance(by=-1)
                 return int(result)
             except:
-                raise InvalidInputError(f'\nInvalidInputError: line {self.lineCount}, position {self.pos}\n   No valid token for \"{self.text[self.pos-2:self.pos+1]}\"\n')
+                raise NoValidTokenException(f'\nNoValidTokenError: line {self.lineCount}\n   Cannot create a token for \"{self.text[self.pos-2:self.pos+1]}\"\n')
 
     def string(self):
         result = ''
         while self.current_char is not None and self.current_char.isalpha():
             result += self.current_char
             self.advance()
+        self.advance(by=-1)
         return result
 
     def get_next_token(self):
@@ -46,64 +61,51 @@ class Lexer:
             num = self.number()
             tokenType = TokenType.INT if type(num) == int else TokenType.FLOAT
             return Token(tokenType, num)
-        if self.current_char.isalpha():
+        elif self.current_char.isalpha():
             return Token(TokenType.STR, self.string())
-        if self.current_char == '+':
-            self.advance()
+        elif self.current_char == '+':
             return Token(TokenType.PLUS) 
-        if self.current_char == '-':
-            self.advance()
+        elif self.current_char == '-':
             return Token(TokenType.MINUS) 
-        if self.current_char == '*':
-            self.advance()
+        elif self.current_char == '*':
             return Token(TokenType.MULT) 
-        if self.current_char == '/':
-            self.advance()
+        elif self.current_char == '/':
             return Token(TokenType.DIV) 
         elif self.current_char == "=":
-            self.advance()
             return Token(TokenType.EQUALS)
         elif self.current_char == ":":
-            self.advance()
             return Token(TokenType.COLON)
         elif self.current_char == ",":
-            self.advance()
             return Token(TokenType.COMMA)
         elif self.current_char == "(":
-            self.advance()
             return Token(TokenType.LPAREN) 
         elif self.current_char == ")":
-            self.advance()
             return Token(TokenType.RPAREN)
         elif self.current_char == "{":
-            self.advance()
             return Token(TokenType.LCURL)
         elif self.current_char == "}":
-            self.advance()
             return Token(TokenType.RCURL)
         elif self.current_char == "[":
-            self.advance()
             return Token(TokenType.LBRACKET)
         elif self.current_char == "]":
-            self.advance()
             return Token(TokenType.RBRACKET)
         elif self.current_char == "\"":
-            self.advance()
             return Token(TokenType.QUOTE)
-        raise InvalidCharacterError(f'\nInvalidCharacterError: line {self.lineCount}, position {self.pos}\n   \"{self.current_char}\" is not part of the language\n')
+        #Add new token conditions here after adding the new token to the tokens.py enum.
+        raise InvalidCharacterException(f'\nInvalidCharacterError: line {self.lineCount}\n   \"{self.current_char}\" is not part of the language\n')
     
     def tokenize(self):
-        while self.pos < len(self.text):
-            if self.current_char.isspace():
+        while self.current_char is not None:
+            if self.current_char == " ":
                 self.advance()
                 continue
-            elif self.current_char == "\n": #This doesnt work
+            elif self.current_char == '\n':
                 self.lineCount += 1
                 self.advance()
-                print(self.lineCount)
                 continue
             try:
                 self.tokens.append(self.get_next_token())
-            except Exception as e:
-                return e
+                self.advance()
+            except Exception as e: 
+                return e 
         return self.tokens
