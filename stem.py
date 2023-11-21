@@ -5,19 +5,15 @@ class Parser():
         self.tokens = tokens
         self.current_token = self.tokens[0] if self.tokens else None
         self.parser_token = []
-        self.pos = 0
 
     def advance(self, by: int = 1):
-        self.tokens.pop(0) # I have no clue what is happening here... I found this online.
+        # This method pops and advances from the list instead of keeping track of the self.pos
+        self.tokens.pop(0)
         self.current_token = self.tokens[0] if self.tokens else None
 
     def parse(self):
         res = self.expression()
-        return res 
-    
-    # ? Should this method perform token recovery in case there a missing token? Is that possible?
-    def error(self):
-        raise Exception('Invalid Syntax')
+        return res
 
     def factor(self):
         token = self.current_token
@@ -40,14 +36,18 @@ class Parser():
             self.advance()
             right = func()
             left = BinOpNode(left, op_token, right)
-        
+
         return left
+
+    # ? Should this method perform token recovery in case there a missing token? Is that possible?
+    def error(self):
+        raise Exception('Invalid Syntax')
 
 #Nodes:
 class NumberNode:
     def __init__(self, token) -> None:
         self.token = token
-    
+
     def __repr__(self) -> str:
         return f'{self.token}'
 
@@ -58,4 +58,6 @@ class BinOpNode:
        self.op_token = op_token
 
     def __repr__(self) -> str:
+        # ? Can we simplify this output to not include the TokenType object names in output...
+        # ? for the sake of simplicity
         return f'({self.left_node}, {self.op_token}, {self.right_node})'
