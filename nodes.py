@@ -1,4 +1,5 @@
 from typing import Union
+from tokens import TokenType
 
 class Node:
     def __init__(self) -> None:
@@ -11,37 +12,42 @@ class Node:
         '''For actually evaluating the term, factor, or expression.'''
         pass
 
-class InfixOpNode(Node):
-    def __init__(self, type: str) -> None:
+class BinaryOpNode(Node):
+    def __init__(self, type: TokenType) -> None:
         super().__init__()
-        self.type: str = type
+        self.type: TokenType = type
         self.left: Node = None
         self.right: Node = None
-        if type == '+':
+        if type == TokenType.PLUS:
             self.func = lambda a,b : a+b 
-        elif type == '-':
+            self.symbol = '+'
+        elif type == TokenType.MINUS:
             self.func = lambda a,b : a-b
-        elif type == '*':
+            self.symbol = '-'
+        elif type == TokenType.MULT:
             self.func = lambda a,b : a*b
-        elif type == '/':
+            self.symbol = '*'
+        elif type == TokenType.DIV:
             self.func = lambda a,b : a/b
+            self.symbol = '/'
 
     def __repr__(self) -> str:
-        return f'({self.left.__repr__()} {self.type} {self.right.__repr__()})'
+        return f'({self.left.__repr__()} {self.symbol} {self.right.__repr__()})'
         
     def eval(self):
-        return self.func(self.left.eval(), self.right.eval)
+        return self.func(self.left.eval(), self.right.eval())
 
-class PrefixOpNode(Node):
-    def __init__(self, type: str) -> None:
+class UnaryOpNode(Node):
+    def __init__(self, type: TokenType) -> None:
         super().__init__()
-        self.type: str = type
+        self.type: TokenType = type
         self.child: Node = None
-        if type == "-":
+        if type == TokenType.MINUS:
             self.func = lambda a: -1*a
+            self.symbol = '-'
 
     def __repr__(self) -> str:
-        return f'({self.type} {self.child.__repr__()})'
+        return f'({self.symbol}{self.child.__repr__()})'
 
     def eval(self):
         return self.func(self.child.eval())
