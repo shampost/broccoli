@@ -62,7 +62,11 @@ class Lexer:
             tokenType = TokenType.INT if type(num) == int else TokenType.FLOAT
             return Token(tokenType, num)
         elif self.current_char.isalpha():
-            return Token(TokenType.STR, self.string())
+            word = self.string()
+            if word == "var":
+                return Token(TokenType.VAR)
+            else:
+                return Token(TokenType.STR, value=word)
         elif self.current_char == '+':
             return Token(TokenType.PLUS) 
         elif self.current_char == '-':

@@ -63,6 +63,14 @@ class NumberNode(Node):
     def eval(self):
         return self.value
 
+class IdentifierNode(Node):
+    def __init__(self, identifier: str, value: Union[int,float]) -> None:
+        self.value = value
+        self.identifier = identifier
+        super().__init__()
 
+    def __repr__(self) -> str:
+        return f'({self.identifier},{self.value})'
 
-
+    def eval(self):
+        return self.value
