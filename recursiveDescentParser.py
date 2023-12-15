@@ -42,8 +42,8 @@ class Parser():
 
     def parseLine(self) -> Node:
         # S -> E | VariableDec
-        if self.currentToken.type == TokenType.VAR:
-            return self.parseVar()
+        if self.currentToken.type == TokenType.ID:
+            return self.parseId()
         else:
             return self.parseE()
 
@@ -103,8 +103,9 @@ class Parser():
         self.advance(by=-1)
         return T
 
-    def parseVar(self) -> Node:
-        if self.currentToken.type == TokenType.VAR:
+    def parseId(self) -> Node:
+        #let id = num
+        if self.currentToken.type == TokenType.ID:
             self.advance()
             identifier = self.currentToken.value
             self.advance()

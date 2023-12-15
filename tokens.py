@@ -27,7 +27,7 @@ class TokenType(Enum):
 
     EOF       = object()
 
-    VAR       = object()
+    ID       = object()
 
 
 class Token:

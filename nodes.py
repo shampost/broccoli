@@ -70,7 +70,7 @@ class IdentifierNode(Node):
         super().__init__()
 
     def __repr__(self) -> str:
-        return f'({self.identifier},{self.value})'
+        return f'{self.identifier} -> {self.value}'
 
     def eval(self):
         return self.value

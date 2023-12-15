@@ -7,6 +7,5 @@ while True:
     lexer = Lexer(text)
     tokenList = lexer.tokenize()
     parser.setTokens(tokenList=tokenList)
-    #print(tokenList)
     parser.parse()
     print(parser.evaluate())
