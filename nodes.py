@@ -28,7 +28,7 @@ class BinaryOpNode(Node):
             self.func = lambda a,b : a*b
             self.symbol = '*'
         elif type == TokenType.DIV:
-            self.func = lambda a,b : a/b
+            self.func = lambda a,b : a//b if a%b == 0 else a/b
             self.symbol = '/'
 
     def __repr__(self) -> str:
