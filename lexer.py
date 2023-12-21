@@ -1,5 +1,5 @@
 from tokens import Token, TokenType
-from errors import InvalidCharacterException, NoValidTokenException
+from errors import InvalidCharacterException, NoValidTokenException, UnmatchedParenthesesException
 
 
 class Lexer:
@@ -9,6 +9,7 @@ class Lexer:
         self.current_char = self.text[self.pos]
         self.tokens = []
         self.lineCount = 1
+        self.parenCounter = 0
 
     def advance(self, by: int = 1):
         self.pos += by
@@ -82,8 +83,10 @@ class Lexer:
         elif self.current_char == ",":
             return Token(TokenType.COMMA)
         elif self.current_char == "(":
+            self.parenCounter += 1
             return Token(TokenType.LPAREN) 
         elif self.current_char == ")":
+            self.parenCounter -= 1 
             return Token(TokenType.RPAREN)
         elif self.current_char == "{":
             return Token(TokenType.LCURL)
@@ -119,4 +122,6 @@ class Lexer:
                 newVal = 1/currentVal
                 self.tokens[i+1].type = TokenType.FLOAT
                 self.tokens[i+1].value = newVal
+        if self.parenCounter != 0:
+            raise UnmatchedParenthesesException(f'Missing parentheses on line {self.lineCount}')
         return self.tokens

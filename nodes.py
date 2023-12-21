@@ -14,7 +14,6 @@ class Node:
 
 class BinaryOpNode(Node):
     def __init__(self, type: TokenType) -> None:
-        super().__init__()
         self.type: TokenType = type
         self.left: Node = None
         self.right: Node = None
@@ -39,7 +38,6 @@ class BinaryOpNode(Node):
 
 class UnaryOpNode(Node):
     def __init__(self, type: TokenType) -> None:
-        super().__init__()
         self.type: TokenType = type
         self.child: Node = None
         if type == TokenType.MINUS:
@@ -54,7 +52,6 @@ class UnaryOpNode(Node):
 
 class NumberNode(Node):
     def __init__(self, value: Union[int,float]) -> None:
-        super().__init__()
         self.value = value
 
     def __repr__(self) -> str:
@@ -67,7 +64,6 @@ class IdentifierNode(Node):
     def __init__(self, identifier: str, value: Union[int,float]) -> None:
         self.value = value
         self.identifier = identifier
-        super().__init__()
 
     def __repr__(self) -> str:
         return f'{self.identifier} -> {self.value}'

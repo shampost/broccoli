@@ -49,6 +49,13 @@ class Parser():
 
     def parseF(self) -> Node:
         # F -> Number | identifier | -F
+        if self.currentToken.type == TokenType.LPAREN:
+            self.advance()
+            node = self.parseE()
+            self.advance()
+            if self.currentToken.type != TokenType.RPAREN:
+                raise SyntaxError()
+            return node
         if self.currentToken.type == TokenType.INT:
             return NumberNode(value=int(self.currentToken.value))
         elif self.currentToken.type == TokenType.FLOAT:
@@ -108,8 +115,7 @@ class Parser():
         if self.currentToken.type == TokenType.ID:
             self.advance()
             identifier = self.currentToken.value
-            self.advance()
-            self.advance()
+            self.advance(by=2)
             value = self.currentToken.value
             self.stack[identifier] = value
             node = IdentifierNode(identifier=identifier, value=value)

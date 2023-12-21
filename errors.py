@@ -5,3 +5,7 @@ class InvalidCharacterException(Exception):
 class NoValidTokenException(Exception):
     #Raised when a combination of valid characters does not make up a valid token.
     pass
+
+class UnmatchedParenthesesException(Exception):
+    #Raised when a combination of valid characters does not make up a valid token.
+    pass
