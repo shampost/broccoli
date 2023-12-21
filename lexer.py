@@ -1,5 +1,5 @@
 from tokens import Token, TokenType
-from errors import InvalidCharacterException, NoValidTokenException
+from errors import InvalidCharacterException, NoValidTokenException, UnmatchedParenthesesException
 
 
 class Lexer:
@@ -9,6 +9,7 @@ class Lexer:
         self.current_char = self.text[self.pos]
         self.tokens = []
         self.lineCount = 1
+        self.parenCounter = 0
 
     def advance(self, by: int = 1):
         self.pos += by
@@ -62,7 +63,11 @@ class Lexer:
             tokenType = TokenType.INT if type(num) == int else TokenType.FLOAT
             return Token(tokenType, num)
         elif self.current_char.isalpha():
-            return Token(TokenType.STR, self.string())
+            word = self.string()
+            if word == "let":
+                return Token(TokenType.ID)
+            else:
+                return Token(TokenType.STR, value=word)
         elif self.current_char == '+':
             return Token(TokenType.PLUS) 
         elif self.current_char == '-':
@@ -78,8 +83,10 @@ class Lexer:
         elif self.current_char == ",":
             return Token(TokenType.COMMA)
         elif self.current_char == "(":
+            self.parenCounter += 1
             return Token(TokenType.LPAREN) 
         elif self.current_char == ")":
+            self.parenCounter -= 1 
             return Token(TokenType.RPAREN)
         elif self.current_char == "{":
             return Token(TokenType.LCURL)
@@ -107,5 +114,14 @@ class Lexer:
                 self.tokens.append(self.get_next_token())
                 self.advance()
             except Exception as e: 
-                return e 
+                return e
+        for i in range(len(self.tokens)):
+            if self.tokens[i].type == TokenType.DIV:
+                self.tokens[i].type = TokenType.MULT
+                currentVal = self.tokens[i+1].value
+                newVal = 1/currentVal
+                self.tokens[i+1].type = TokenType.FLOAT
+                self.tokens[i+1].value = newVal
+        if self.parenCounter != 0:
+            raise UnmatchedParenthesesException(f'Missing parentheses on line {self.lineCount}')
         return self.tokens
