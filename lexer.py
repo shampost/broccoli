@@ -111,5 +111,12 @@ class Lexer:
                 self.tokens.append(self.get_next_token())
                 self.advance()
             except Exception as e: 
-                return e 
+                return e
+        for i in range(len(self.tokens)):
+            if self.tokens[i].type == TokenType.DIV:
+                self.tokens[i].type = TokenType.MULT
+                currentVal = self.tokens[i+1].value
+                newVal = 1/currentVal
+                self.tokens[i+1].type = TokenType.FLOAT
+                self.tokens[i+1].value = newVal
         return self.tokens
