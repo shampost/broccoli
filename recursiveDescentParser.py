@@ -116,7 +116,7 @@ class Parser():
             self.advance()
             identifier = self.currentToken.value
             self.advance(by=2)
-            value = self.currentToken.value
+            value = self.parseE().eval() #self.currentToken.value
             self.stack[identifier] = value
             node = IdentifierNode(identifier=identifier, value=value)
         return node
