@@ -1,9 +1,11 @@
 from lexer import Lexer
-from stem import Parser
+
 while True:
     text = input("broccoli > ")
+    if text == "":
+        continue
     lexer = Lexer(text)
-    tokens = lexer.tokenize()
-    parser = Parser(tokens)
-    ast = parser.parse()
-    print(ast)
+    tokenList = lexer.tokenize()
+    parser.setTokens(tokenList=tokenList)
+    parser.parse()
+    print(parser.evaluate())
