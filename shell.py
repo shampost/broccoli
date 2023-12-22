@@ -1,5 +1,7 @@
 from lexer import Lexer
+from recursiveDescentParser import Parser
 
+parser = Parser()
 while True:
     text = input("broccoli > ")
     if text == "":
