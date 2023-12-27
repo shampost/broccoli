@@ -58,48 +58,49 @@ class Lexer:
         return result
 
     def get_next_token(self):
-        if self.current_char.isdigit():
-            num = self.number()
-            tokenType = TokenType.INT if type(num) == int else TokenType.FLOAT
-            return Token(tokenType, num)
-        elif self.current_char.isalpha():
-            word = self.string()
-            if word == "let":
-                return Token(TokenType.ID)
-            else:
-                return Token(TokenType.STR, value=word)
-        elif self.current_char == '+':
-            return Token(TokenType.PLUS) 
-        elif self.current_char == '-':
-            return Token(TokenType.MINUS) 
-        elif self.current_char == '*':
-            return Token(TokenType.MULT) 
-        elif self.current_char == '/':
-            return Token(TokenType.DIV) 
-        elif self.current_char == "=":
-            return Token(TokenType.EQUALS)
-        elif self.current_char == ":":
-            return Token(TokenType.COLON)
-        elif self.current_char == ",":
-            return Token(TokenType.COMMA)
-        elif self.current_char == "(":
-            self.parenCounter += 1
-            return Token(TokenType.LPAREN) 
-        elif self.current_char == ")":
-            self.parenCounter -= 1 
-            return Token(TokenType.RPAREN)
-        elif self.current_char == "{":
-            return Token(TokenType.LCURL)
-        elif self.current_char == "}":
-            return Token(TokenType.RCURL)
-        elif self.current_char == "[":
-            return Token(TokenType.LBRACKET)
-        elif self.current_char == "]":
-            return Token(TokenType.RBRACKET)
-        elif self.current_char == "\"":
-            return Token(TokenType.QUOTE)
-        #Add new token conditions here after adding the new token to the tokens.py enum.
-        raise InvalidCharacterException(f'\nInvalidCharacterError: line {self.lineCount}\n   \"{self.current_char}\" is not part of the language\n')
+        while self.current_char is not None:
+            if self.current_char.isdigit():
+                num = self.number()
+                tokenType = TokenType.INT if type(num) == int else TokenType.FLOAT
+                return Token(tokenType, num)
+            elif self.current_char.isalpha():
+                word = self.string()
+                if word == "let":
+                    return Token(TokenType.ID)
+                else:
+                    return Token(TokenType.STR, value=word)
+            elif self.current_char == '+':
+                return Token(TokenType.PLUS) 
+            elif self.current_char == '-':
+                return Token(TokenType.MINUS) 
+            elif self.current_char == '*':
+                return Token(TokenType.MULT) 
+            elif self.current_char == '/':
+                return Token(TokenType.DIV) 
+            elif self.current_char == "=":
+                return Token(TokenType.EQUALS)
+            elif self.current_char == ":":
+                return Token(TokenType.COLON)
+            elif self.current_char == ",":
+                return Token(TokenType.COMMA)
+            elif self.current_char == "(":
+                self.parenCounter += 1
+                return Token(TokenType.LPAREN) 
+            elif self.current_char == ")":
+                self.parenCounter -= 1 
+                return Token(TokenType.RPAREN)
+            elif self.current_char == "{":
+                return Token(TokenType.LCURL)
+            elif self.current_char == "}":
+                return Token(TokenType.RCURL)
+            elif self.current_char == "[":
+                return Token(TokenType.LBRACKET)
+            elif self.current_char == "]":
+                return Token(TokenType.RBRACKET)
+            elif self.current_char == "\"":
+                return Token(TokenType.QUOTE)
+            #Add new token conditions here after adding the new token to the tokens.py enum.
+            raise InvalidCharacterException(f'\nInvalidCharacterError: line {self.lineCount}\n   \"{self.current_char}\" is not part of the language\n')
     
     def tokenize(self):
         while self.current_char is not None:
@@ -115,6 +116,12 @@ class Lexer:
                 self.advance()
             except Exception as e: 
                 return e
+        self.divToMult()
+        if self.parenCounter != 0:
+            raise UnmatchedParenthesesException(f'Missing parentheses on line {self.lineCount}')
+        return self.tokens
+
+    def divToMult(self):
         for i in range(len(self.tokens)):
             if self.tokens[i].type == TokenType.DIV:
                 self.tokens[i].type = TokenType.MULT
@@ -122,6 +129,3 @@ class Lexer:
                 newVal = 1/currentVal
                 self.tokens[i+1].type = TokenType.FLOAT
                 self.tokens[i+1].value = newVal
-        if self.parenCounter != 0:
-            raise UnmatchedParenthesesException(f'Missing parentheses on line {self.lineCount}')
-        return self.tokens

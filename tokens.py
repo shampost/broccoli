@@ -31,7 +31,7 @@ class TokenType(Enum):
 
 
 class Token:
-    def __init__(self, type: TokenType, value: str = None) -> None:
+    def __init__(self, type: TokenType, value=None) -> None:
         self.type = type
         self.value = value
     
