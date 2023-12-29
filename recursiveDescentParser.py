@@ -8,7 +8,7 @@ class Parser():
         self.lineTokenList = None
         self.allTokensList = None
         self.rootNode: Node = None
-        self.currentToken = None
+        self.currentToken: Token = None
         self.stack: dict[Node] = {}
 
     def showInput(self):
@@ -48,8 +48,12 @@ class Parser():
         # S -> E | VariableDec
         if self.currentToken.type == TokenType.ID:
             return self.parseId()
+        elif len(self.lineTokenList) > 1:
+            if self.lineTokenList[self.pos + 1].type == TokenType.EQUALS:
+                return self.parseRedeclare()
         else:
             return self.parseE()
+            
 
     def parseF(self) -> Node:
         # F -> Number | identifier | -F
@@ -123,6 +127,16 @@ class Parser():
             self.stack[identifier] = value
             node = IdentifierNode(identifier=identifier, value=value)
         return node
+    
+    def parseRedeclare(self) -> Node:
+        if self.stack[self.currentToken.value] is not None:
+            identifier = self.currentToken.value
+            self.advance(by=2)
+            value = self.parseE().eval()
+            self.stack[identifier] = value
+            return IdentifierNode(identifier=identifier, value=value)
+        else:
+            raise SyntaxError()
 
 # myParser = Parser([Token(TokenType.MINUS), Token(TokenType.INT, 4)])
 # myParser.parse()

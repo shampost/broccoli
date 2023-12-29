@@ -66,7 +66,7 @@ class Lexer:
                 return Token(tokenType, num)
             elif self.current_char.isalpha():
                 word = self.string()
-                if word == "let":
+                if word == "var":
                     return Token(TokenType.ID)
                 else:
                     return Token(TokenType.STR, value=word)
