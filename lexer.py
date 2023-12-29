@@ -7,7 +7,8 @@ class Lexer:
         self.text = text
         self.pos = 0
         self.current_char = self.text[self.pos]
-        self.tokens = []
+        self.lineTokens = []
+        self.allTokens = []
         self.lineCount = 1
         self.parenCounter = 0
 
@@ -99,6 +100,8 @@ class Lexer:
                 return Token(TokenType.RBRACKET)
             elif self.current_char == "\"":
                 return Token(TokenType.QUOTE)
+            elif self.current_char == "\n":
+                return Token(TokenType.NEWLINE)
             #Add new token conditions here after adding the new token to the tokens.py enum.
             raise InvalidCharacterException(f'\nInvalidCharacterError: line {self.lineCount}\n   \"{self.current_char}\" is not part of the language\n')
     
@@ -109,23 +112,28 @@ class Lexer:
                 continue
             elif self.current_char == '\n':
                 self.lineCount += 1
+                self.allTokens.append(self.lineTokens)
+                self.lineTokens = []
                 self.advance()
                 continue
             try:
-                self.tokens.append(self.get_next_token())
+                self.lineTokens.append(self.get_next_token())
                 self.advance()
             except Exception as e: 
                 return e
         self.divToMult()
         if self.parenCounter != 0:
             raise UnmatchedParenthesesException(f'Missing parentheses on line {self.lineCount}')
-        return self.tokens
+        if len(self.lineTokens) != 0:
+            self.allTokens.append(self.lineTokens)
+            self.lineTokens = []
+        return self.allTokens
 
     def divToMult(self):
-        for i in range(len(self.tokens)):
-            if self.tokens[i].type == TokenType.DIV:
-                self.tokens[i].type = TokenType.MULT
-                currentVal = self.tokens[i+1].value
+        for i in range(len(self.lineTokens)):
+            if self.lineTokens[i].type == TokenType.DIV:
+                self.lineTokens[i].type = TokenType.MULT
+                currentVal = self.lineTokens[i+1].value
                 newVal = 1/currentVal
-                self.tokens[i+1].type = TokenType.FLOAT
-                self.tokens[i+1].value = newVal
+                self.lineTokens[i+1].type = TokenType.FLOAT
+                self.lineTokens[i+1].value = newVal

@@ -25,6 +25,7 @@ class TokenType(Enum):
 
     DOT       = object()
 
+    NEWLINE   = object() 
     EOF       = object()
 
     ID       = object()
