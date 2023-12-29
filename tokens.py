@@ -25,13 +25,14 @@ class TokenType(Enum):
 
     DOT       = object()
 
+    NEWLINE   = object() 
     EOF       = object()
 
     ID       = object()
 
 
 class Token:
-    def __init__(self, type: TokenType, value: str = None) -> None:
+    def __init__(self, type: TokenType, value=None) -> None:
         self.type = type
         self.value = value
     
