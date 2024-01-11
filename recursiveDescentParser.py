@@ -1,11 +1,11 @@
 from tokens import TokenType, Token
-from nodes import Node, NumberNode, BinaryOpNode, UnaryOpNode, IdentifierNode
+from nodes import Node, NumberNode, BinaryOpNode, UnaryOpNode, IdentifierNode, BoolNode
 from lexer import Lexer
 
 class Parser():
     def __init__(self) -> None:
         self.pos = 0
-        self.lineTokenList = None
+        self.lineTokenList = []
         self.allTokensList = None
         self.rootNode: Node = None
         self.currentToken: Token = None
@@ -46,11 +46,13 @@ class Parser():
 
     def parseLine(self) -> Node:
         # S -> E | VariableDec
+        
         if self.currentToken.type == TokenType.ID:
             return self.parseId()
-        elif len(self.lineTokenList) > 1:
-            if self.lineTokenList[self.pos + 1].type == TokenType.EQUALS:
-                return self.parseRedeclare()
+        elif len(self.lineTokenList) > 1 and self.lineTokenList[self.pos + 1].type == TokenType.EQUALS:
+            return self.parseRedeclare()
+        elif self.currentToken.type == TokenType.WHILE:
+            return self.parseWhile()
         else:
             return self.parseE()
             
@@ -138,6 +140,12 @@ class Parser():
         else:
             raise SyntaxError()
 
+    def parseWhile(self) -> Node:
+        self.advance()
+        return self.parseBool()
+    
+    def parseBool(self) -> BoolNode:
+        pass
 # myParser = Parser([Token(TokenType.MINUS), Token(TokenType.INT, 4)])
 # myParser.parse()
 # print(myParser.rootNode)

@@ -28,7 +28,19 @@ class TokenType(Enum):
     NEWLINE   = object() 
     EOF       = object()
 
-    ID       = object()
+    ID        = object()
+
+    LESS      = object()
+    GREATER   = object()
+    LESSEQ    = object()
+    GREATEREQ = object()
+    TWOEQ     = object()
+    AND       = object()
+    OR        = object()
+
+    WHILE     = object()
+
+
 
 
 class Token:

@@ -70,3 +70,29 @@ class IdentifierNode(Node):
 
     def eval(self):
         return self.value
+
+class BoolNode(Node):
+    def __init__(self, type: TokenType) -> None:
+        self.left: Node = None
+        self.right: Node = None
+        if type == TokenType.GREATER:
+            self.func = lambda a,b : a>b 
+            self.symbol = '>'
+        elif type == TokenType.LESS:
+            self.func = lambda a,b : a<b
+            self.symbol = '<'
+        elif type == TokenType.GREATEREQ:
+            self.func = lambda a,b : a>=b
+            self.symbol = '>='
+        elif type == TokenType.LESSEQ:
+            self.func = lambda a,b : a<=b
+            self.symbol = '<='
+        elif type == TokenType.TWOEQ:
+            self.func = lambda a,b : a==b
+            self.symbol = '=='
+    
+    def __repr__(self) -> str:
+        return f'({self.left.__repr__()} {self.symbol} {self.right.__repr__()})'
+
+    def eval(self):
+        return self.func(self.left.eval(), self.right.eval())
