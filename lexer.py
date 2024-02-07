@@ -1,4 +1,5 @@
 from tokens import Token, TokenType
+from memory import Memory
 from errors import InvalidCharacterException, NoValidTokenException, UnmatchedParenthesesException
 
 
