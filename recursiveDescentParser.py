@@ -1,15 +1,17 @@
 from tokens import TokenType, Token
-from nodes import Node, NumberNode, BinaryOpNode, UnaryOpNode, IdentifierNode
+from nodes import Node, NumberNode, BinaryOpNode, UnaryOpNode, IdentifierNode, BoolNode
+from errors import InvalidRedeclaration
+from memory import Memory
 from lexer import Lexer
 
 class Parser():
-    def __init__(self) -> None:
+    def __init__(self, memory: Memory) -> None:
         self.pos = 0
-        self.lineTokenList = None
+        self.lineTokenList = []
         self.allTokensList = None
         self.rootNode: Node = None
-        self.currentToken = None
-        self.stack: dict[Node] = {}
+        self.currentToken: Token = None
+        self.memory = memory
 
     def showInput(self):
         print(self.rootNode)
@@ -46,10 +48,16 @@ class Parser():
 
     def parseLine(self) -> Node:
         # S -> E | VariableDec
+        
         if self.currentToken.type == TokenType.ID:
             return self.parseId()
+        elif len(self.lineTokenList) > 1 and self.lineTokenList[self.pos + 1].type == TokenType.EQUALS:
+            return self.parseRedeclare()
+        elif self.currentToken.type == TokenType.WHILE:
+            return self.parseWhile()
         else:
             return self.parseE()
+            
 
     def parseF(self) -> Node:
         # F -> Number | identifier | -F
@@ -65,8 +73,8 @@ class Parser():
         elif self.currentToken.type == TokenType.FLOAT:
             return NumberNode(value=float(self.currentToken.value))
         elif self.currentToken.type == TokenType.STR:
-            if self.currentToken.value in self.stack.keys():
-                return IdentifierNode(identifier=self.currentToken.value, value=self.stack[self.currentToken.value])
+            if self.currentToken.value in self.memory.getAll().keys():
+                return IdentifierNode(self.currentToken.value, self.memory.getItem(self.currentToken.value))
         elif self.currentToken.type == TokenType.MINUS:
             node = UnaryOpNode(type=TokenType.MINUS)
             self.advance()
@@ -119,11 +127,31 @@ class Parser():
             self.advance()
             identifier = self.currentToken.value
             self.advance(by=2)
-            value = self.parseE().eval() #self.currentToken.value
-            self.stack[identifier] = value
+            value = self.parseE().eval() 
+            if self.memory.getItem(identifier) is None:
+                self.memory.addItem(identifier, value)
+            else:
+                raise InvalidRedeclaration(f'\n\nVariable \'{identifier}\' has already been declared. Please rename your variable\n')
             node = IdentifierNode(identifier=identifier, value=value)
         return node
+    
+    def parseRedeclare(self) -> Node:
+        if self.memory.getItem(self.currentToken.value) is not None:
+            identifier = self.currentToken.value
+            self.advance(by=2)
+            value = self.parseE().eval()
+            self.memory.addItem(identifier, value)
+            return IdentifierNode(identifier=identifier, value=value)
+        else:
+            raise SyntaxError()
 
+    def parseWhile(self) -> Node:
+        self.advance()
+        return self.parseBool()
+    
+    def parseBool(self) -> BoolNode:
+        
+        pass
 # myParser = Parser([Token(TokenType.MINUS), Token(TokenType.INT, 4)])
 # myParser.parse()
 # print(myParser.rootNode)

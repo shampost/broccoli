@@ -1,8 +1,11 @@
 import sys
 from lexer import Lexer
+from memory import Memory
 from recursiveDescentParser import Parser
 
-parser = Parser()
+# global mem instance
+memory = Memory()
+parser = Parser(memory)
 #while True:
 #    text = input("broccoli > ")
 #    if text == "":
@@ -11,7 +14,7 @@ filename = "test.txt"
 with open(filename, 'r') as file:
     text = file.read()
 lexer = Lexer(text)
-tokenList = lexer.tokenize()
+tokenList = lexer.tokenize() # this call should not be needed?
 parser.setTokens(tokenList)
 parser.parse()
 print(parser.evaluate())

@@ -1,4 +1,5 @@
 from tokens import Token, TokenType
+from memory import Memory
 from errors import InvalidCharacterException, NoValidTokenException, UnmatchedParenthesesException
 
 
@@ -66,7 +67,7 @@ class Lexer:
                 return Token(tokenType, num)
             elif self.current_char.isalpha():
                 word = self.string()
-                if word == "let":
+                if word == "var":
                     return Token(TokenType.ID)
                 else:
                     return Token(TokenType.STR, value=word)
