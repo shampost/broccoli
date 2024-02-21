@@ -37,8 +37,13 @@ class TokenType(Enum):
     TWOEQ     = object()
     AND       = object()
     OR        = object()
+    NOT       = object()
 
     WHILE     = object()
+    IF        = object()
+
+    TRUE      = object()
+    FALSE     = object()
 
 
 

@@ -69,6 +69,14 @@ class Lexer:
                 word = self.string()
                 if word == "var":
                     return Token(TokenType.ID)
+                elif word == "if":
+                    return Token(TokenType.IF)
+                elif word == "while":
+                    return Token(TokenType.WHILE)
+                elif word == "True":
+                    return Token(TokenType.TRUE)
+                elif word == "False":
+                    return Token(TokenType.FALSE)
                 else:
                     return Token(TokenType.STR, value=word)
             elif self.current_char == '+':
@@ -103,6 +111,22 @@ class Lexer:
                 return Token(TokenType.QUOTE)
             elif self.current_char == "\n":
                 return Token(TokenType.NEWLINE)
+            elif self.current_char == "==":
+                return Token(TokenType.TWOEQ)
+            elif self.current_char == "<":
+                return Token(TokenType.LESS)
+            elif self.current_char == "<=":
+                return Token(TokenType.LESSEQ)
+            elif self.current_char == ">":
+                return Token(TokenType.GREATER)
+            elif self.current_char == ">=":
+                return Token(TokenType.GREATEREQ)
+            elif self.current_char == "|":
+                return Token(TokenType.OR)
+            elif self.current_char == "&":
+                return Token(TokenType.AND)
+            elif self.current_char == "!":
+                return Token(TokenType.NOT)
             #Add new token conditions here after adding the new token to the tokens.py enum.
             raise InvalidCharacterException(f'\nInvalidCharacterError: line {self.lineCount}\n   \"{self.current_char}\" is not part of the language\n')
     

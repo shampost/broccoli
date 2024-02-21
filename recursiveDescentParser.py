@@ -1,5 +1,5 @@
 from tokens import TokenType, Token
-from nodes import Node, NumberNode, BinaryOpNode, UnaryOpNode, IdentifierNode, BoolNode
+from nodes import Node, NumberNode, BinaryOpNode, UnaryOpNode, IdentifierNode, BoolNode, BoolLiteralNode
 from errors import InvalidRedeclaration
 from memory import Memory
 from lexer import Lexer
@@ -55,6 +55,8 @@ class Parser():
             return self.parseRedeclare()
         elif self.currentToken.type == TokenType.WHILE:
             return self.parseWhile()
+        elif self.currentToken.type == TokenType.IF:
+            return self.parseIf()
         else:
             return self.parseE()
             
@@ -147,11 +149,103 @@ class Parser():
 
     def parseWhile(self) -> Node:
         self.advance()
-        return self.parseBool()
+        return self.parseBoolE()
+
+    def parseIf(self) -> Node:
+        self.advance()
+        return self.parseBoolE()
     
-    def parseBool(self) -> BoolNode:
-        
-        pass
+    def parseBoolE(self) -> BoolNode:
+        # E -> T || E     T && E       !E        T
+        T = self.parseBoolT()
+        self.advance()
+        if self.currentToken.type == TokenType.OR:
+            node = BoolNode(type=TokenType.OR)
+            node.left = T
+            self.advance()
+            node.right = self.parseBoolE()
+            return node
+        elif self.currentToken.type == TokenType.AND:
+            node = BoolNode(type=TokenType.AND)
+            node.left = T
+            self.advance()
+            node.right = self.parseBoolE()
+            return node
+        self.advance(by=-1)
+        return T
+
+    def parseBoolT(self) -> BoolNode:
+        # T -> F == T     F < T     F <= T     F > T     F >= T     F
+        F = self.parseBoolF()
+        self.advance()
+        if self.currentToken.type == TokenType.TWOEQ:
+            node = BoolNode(type=TokenType.TWOEQ)
+            node.left = F
+            self.advance()
+            node.right = self.parseBoolT()
+            return node
+        elif self.currentToken.type == TokenType.LESS:
+            node = BoolNode(type=TokenType.LESS)
+            node.left = F
+            self.advance()
+            node.right = self.parseBoolT()
+            return node
+        elif self.currentToken.type == TokenType.GREATER:
+            node = BoolNode(type=TokenType.GREATER)
+            node.left = F
+            self.advance()
+            node.right = self.parseBoolT()
+            return node
+        elif self.currentToken.type == TokenType.LESSEQ:
+            node = BoolNode(type=TokenType.LESSEQ)
+            node.left = F
+            self.advance()
+            node.right = self.parseBoolT()
+            return node
+        elif self.currentToken.type == TokenType.GREATEREQ:
+            node = BoolNode(type=TokenType.GREATEREQ)
+            node.left = F
+            self.advance()
+            node.right = self.parseBoolT()
+            return node
+        self.advance(by=-1)
+        return F
+
+    def parseBoolF(self) -> Node:
+        # F -> Number     Identifier     -F      True       False 
+        if self.currentToken.type == TokenType.LPAREN:
+            self.advance()
+            node = self.parseBoolE()
+            self.advance()
+            if self.currentToken.type != TokenType.RPAREN:
+                raise SyntaxError()
+            return node
+        if self.currentToken.type == TokenType.INT:
+            return NumberNode(value=int(self.currentToken.value))
+        elif self.currentToken.type == TokenType.FLOAT:
+            return NumberNode(value=float(self.currentToken.value))
+        elif self.currentToken.type == TokenType.STR:
+            if self.currentToken.value in self.memory.getAll().keys():
+                return IdentifierNode(self.currentToken.value, self.memory.getItem(self.currentToken.value))
+        elif self.currentToken.type == TokenType.MINUS:
+            node = UnaryOpNode(type=TokenType.MINUS)
+            self.advance()
+            node.child = self.parseBoolF()
+            return node
+        elif self.currentToken.type == TokenType.TRUE:
+            return BoolLiteralNode(value=True)
+        elif self.currentToken.type == TokenType.FALSE:
+            return BoolLiteralNode(value=False)
+        elif self.currentToken.type == TokenType.NOT:
+            self.advance()
+            node = self.parseBoolF()
+            if node.eval():
+                return BoolLiteralNode(value=False)
+            else:
+                return BoolLiteralNode(value=True)
+        #Add more grammar rules here
+        raise SyntaxError()
+
 # myParser = Parser([Token(TokenType.MINUS), Token(TokenType.INT, 4)])
 # myParser.parse()
 # print(myParser.rootNode)
