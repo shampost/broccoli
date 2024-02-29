@@ -90,9 +90,25 @@ class BoolNode(Node):
         elif type == TokenType.TWOEQ:
             self.func = lambda a,b : a==b
             self.symbol = '=='
+        elif type == TokenType.OR:
+            self.func = lambda a,b : a or b
+            self.symbol = '||'
+        elif type == TokenType.AND:
+            self.func = lambda a,b : a and b
+            self.symbol = '&&'
     
     def __repr__(self) -> str:
         return f'({self.left.__repr__()} {self.symbol} {self.right.__repr__()})'
 
     def eval(self):
         return self.func(self.left.eval(), self.right.eval())
+
+class BoolLiteralNode(Node):
+    def __init__(self, value: bool) -> None:
+        self.value = value
+
+    def __repr__(self) -> str:
+        return f'{self.value}'
+
+    def eval(self):
+        return self.value
