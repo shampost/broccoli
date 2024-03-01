@@ -12,6 +12,7 @@ class Parser():
         self.rootNode: Node = None
         self.currentToken: Token = None
         self.memory = memory
+        self.currentLine = None
 
     def showInput(self):
         print(self.rootNode)
@@ -148,8 +149,23 @@ class Parser():
             raise SyntaxError()
 
     def parseWhile(self) -> Node:
+        whileMem = []
         self.advance()
-        return self.parseBoolE()
+        whileExpBool = self.parseBoolE().eval()
+        self.advance(by=2)
+        while self.currentToken.type != TokenType.RCURL and whileExpBool:
+            # whileMem = whileMem.append(self.currentToken)
+            whileMem.append(self.currentToken)
+            self.advance()
+        boolParser = Parser(memory=self.memory)
+        boolParser.setTokens(whileMem)
+        boolParser.parse()
+            
+        # if self.currentToken.type == TokenType.LPAREN: 
+        #     try:
+        #         whileExpBool = self.parseBoolE().eval()
+        #     except SyntaxError:
+        #         print(f'Invalid Syntax')
 
     def parseIf(self) -> Node:
         self.advance()
@@ -212,7 +228,7 @@ class Parser():
         return F
 
     def parseBoolF(self) -> Node:
-        # F -> Number     Identifier     -F      True       False 
+        # F -> Number     Identifier     !F      True       False 
         if self.currentToken.type == TokenType.LPAREN:
             self.advance()
             node = self.parseBoolE()

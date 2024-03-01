@@ -12,6 +12,7 @@ class Lexer:
         self.allTokens = []
         self.lineCount = 1
         self.parenCounter = 0
+        self.curlCounter = 0
 
     def advance(self, by: int = 1):
         self.pos += by
@@ -100,8 +101,10 @@ class Lexer:
                 self.parenCounter -= 1 
                 return Token(TokenType.RPAREN)
             elif self.current_char == "{":
+                self.curlCounter += 1
                 return Token(TokenType.LCURL)
             elif self.current_char == "}":
+                self.curlCounter -= 1
                 return Token(TokenType.RCURL)
             elif self.current_char == "[":
                 return Token(TokenType.LBRACKET)
