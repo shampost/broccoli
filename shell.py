@@ -13,7 +13,7 @@ with open(filename, 'r') as file:
     text = file.read()
 lexer = Lexer(text)
 tokenList = lexer.tokenize() # this call should not be needed?
-print(tokenList)
+#print(tokenList)
 parser.setTokens(tokenList)
 parser.parse()
-print(parser.evaluate())
+print(f'>> {parser.evaluate()}')

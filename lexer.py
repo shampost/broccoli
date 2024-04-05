@@ -140,7 +140,8 @@ class Lexer:
                 continue
             elif self.current_char == '\n':
                 self.lineCount += 1
-                self.allTokens.append(self.lineTokens)
+                if len(self.lineTokens) != 0:
+                    self.allTokens.append(self.lineTokens)
                 self.lineTokens = []
                 self.advance()
                 continue

@@ -32,16 +32,34 @@ class Parser():
 
     def parse(self):
         '''Uses grammar functions to parse input and set the rootNode'''
-        for i in range(len(self.allTokensList)):
+        i = 0
+        while i < len(self.allTokensList):
             self.lineTokenList = self.allTokensList[i] 
             self.pos = 0 
             self.currentToken = self.lineTokenList[0]
-            try:
-                self.rootNode = self.parseLine()
-            except SyntaxError as e:
-                return e
+            #try:
+            self.rootNode = self.parseLine()
+            if isinstance(self.rootNode, BoolNode):
+                ifBlockTokens = []
+                for j in range(i+1,len(self.allTokensList)):
+                   
+                    types = map(lambda token: token.type, self.allTokensList[j])
+                    if TokenType.RCURL in types:
+                        i = j
+                        break
+                    ifBlockTokens.append(self.allTokensList[j])
+                if self.rootNode.eval():
+                    #return node from if block
+                    ifParser = Parser(self.memory)
+                    ifParser.setTokens(ifBlockTokens)
+                    ifParser.parse()
+                    self.rootNode = ifParser.rootNode
+            #except SyntaxError as e:
+                #return e
+            # print(i)
             if self.currentToken != self.lineTokenList[-1]:
                 raise SyntaxError()
+            i += 1
 
 ##################################################################
 ########################## GRAMMAR ###############################
@@ -169,7 +187,12 @@ class Parser():
 
     def parseIf(self) -> Node:
         self.advance()
-        return self.parseBoolE()
+        boolNode = self.parseBoolE()
+        self.advance()
+        if self.currentToken.type != TokenType.LCURL:
+            raise SyntaxError()
+        return boolNode
+        
     
     def parseBoolE(self) -> BoolNode:
         # E -> T || E     T && E       !E        T
