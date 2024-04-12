@@ -45,6 +45,7 @@ class TokenType(Enum):
     TRUE      = object()
     FALSE     = object()
 
+    PRINT      = object()
 
 
 

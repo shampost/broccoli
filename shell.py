@@ -16,4 +16,3 @@ tokenList = lexer.tokenize() # this call should not be needed?
 #print(tokenList)
 parser.setTokens(tokenList)
 parser.parse()
-print(f'>> {parser.evaluate()}')

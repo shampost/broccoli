@@ -1,6 +1,6 @@
 from tokens import Token, TokenType
 from memory import Memory
-from errors import InvalidCharacterException, NoValidTokenException, UnmatchedParenthesesException
+from errors import InvalidCharacterException, NoValidTokenException, UnmatchedBracketException
 
 
 class Lexer:
@@ -78,6 +78,8 @@ class Lexer:
                     return Token(TokenType.TRUE)
                 elif word == "False":
                     return Token(TokenType.FALSE)
+                elif word == "print":
+                    return Token(TokenType.PRINT)
                 else:
                     return Token(TokenType.STR, value=word)
             elif self.current_char == '+':
@@ -151,8 +153,8 @@ class Lexer:
             except Exception as e: 
                 return e
         self.divToMult()
-        if self.parenCounter != 0:
-            raise UnmatchedParenthesesException(f'Missing parentheses on line {self.lineCount}')
+        if self.parenCounter != 0 or self.curlCounter != 0:
+            raise UnmatchedBracketException(f'Missing parentheses on line {self.lineCount}')
         if len(self.lineTokens) != 0:
             self.allTokens.append(self.lineTokens)
             self.lineTokens = []
