@@ -2,7 +2,7 @@ import sys
 from io import StringIO
 from lexer import Lexer
 from memory import Memory
-from recursiveDescentParser import Parser
+from recursive_descent_parser import Parser
 import streamlit as st
 
 if "testKey" not in st.session_state:
@@ -31,7 +31,7 @@ def onClick(filename):
 
 def hitEnter(line: str):
     updateMemory()
-    print(memory.getAll())
+    print(memory.get_all())
     parser = Parser(memory)
     lexer = Lexer(line)
     tokenList = lexer.tokenize()
@@ -44,15 +44,15 @@ def hitEnter(line: str):
     #st.write(st.session_state)
 
 def updateSessionState():
-    for key in memory.getAll().keys():
-        st.session_state[key] = memory.getItem(key)
+    for key in memory.get_all().keys():
+        st.session_state[key] = memory.get_item(key)
     lines = st.session_state["prevLines"]
     lines.append(line)
     st.session_state["prevLines"] = lines
 
 def updateMemory():
     for key in st.session_state.keys():
-        memory.addItem(name=key,value=st.session_state[key])
+        memory.add_item(name=key,value=st.session_state[key])
 
 tab1, tab2 = st.tabs(["Terminal", "Upload File"])
 

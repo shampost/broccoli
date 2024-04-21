@@ -1,10 +1,15 @@
+'''
+Parser
+'''
 from tokens import TokenType, Token
-from nodes import Node, NumberNode, BinaryOpNode, UnaryOpNode, IdentifierNode, BoolNode, BoolLiteralNode
+from nodes import Node, NumberNode, BinaryOpNode, UnaryOpNode,\
+                  IdentifierNode, BoolNode, BoolLiteralNode
 from errors import InvalidRedeclaration
 from memory import Memory
-from lexer import Lexer
 
 class Parser():
+    # write docstring
+
     def __init__(self, memory: Memory) -> None:
         self.pos = 0
         self.lineTokenList = []
@@ -35,24 +40,39 @@ class Parser():
         i = 0
         while i < len(self.allTokensList):
             self.lineTokenList = self.allTokensList[i] 
-            self.pos = 0 
+            self.pos = 0
             self.currentToken = self.lineTokenList[0]
             #try:
             self.rootNode = self.parseLine()
             if isinstance(self.rootNode, BoolNode):
-                ifBlockTokens = []
-                for j in range(i+1,len(self.allTokensList)):
-                    types = [token.type for token in self.allTokensList[j]]
-                    if TokenType.RCURL in types:
-                        i = j
-                        break
-                    ifBlockTokens.append(self.allTokensList[j])
-                if self.rootNode.eval():
-                    #return node from if block
-                    ifParser = Parser(self.memory)
-                    ifParser.setTokens(ifBlockTokens)
-                    ifParser.parse()
-                    self.rootNode = ifParser.rootNode
+                if self.lineTokenList[0].type == TokenType.IF:
+                    if_block_tokens = []
+                    for j in range(i+1,len(self.allTokensList)):
+                        types = [token.type for token in self.allTokensList[j]]
+                        if TokenType.RCURL in types:
+                            i = j
+                            break
+                        if_block_tokens.append(self.allTokensList[j])
+                    if self.rootNode.eval():
+                        #return node from if block
+                        if_parser = Parser(self.memory)
+                        if_parser.setTokens(if_block_tokens)
+                        if_parser.parse()
+                        self.rootNode = if_parser.rootNode
+                else:
+                    if_block_tokens = []
+                    for j in range(i+1,len(self.allTokensList)):
+                        types = [token.type for token in self.allTokensList[j]]
+                        if TokenType.RBRACKET in types:
+                            i = j
+                            break
+                        if_block_tokens.append(self.allTokensList[j])
+                    while self.rootNode.eval():
+                        #return node from if block
+                        if_parser = Parser(self.memory)
+                        if_parser.setTokens(if_block_tokens)
+                        if_parser.parse()
+                        self.rootNode = if_parser.rootNode
             #except SyntaxError as e:
                 #return e
             # print(i)
@@ -72,7 +92,7 @@ class Parser():
         elif len(self.lineTokenList) > 1 and self.lineTokenList[self.pos + 1].type == TokenType.EQUALS:
             return self.parseRedeclare()
         elif self.currentToken.type == TokenType.WHILE:
-            return self.parseWhile()
+            return self.parseIf()
         elif self.currentToken.type == TokenType.IF:
             return self.parseIf()
         #################DANGER ZONE#####################
@@ -119,8 +139,8 @@ class Parser():
         elif self.currentToken.type == TokenType.FLOAT:
             return NumberNode(value=float(self.currentToken.value))
         elif self.currentToken.type == TokenType.STR:
-            if self.currentToken.value in self.memory.getAll().keys():
-                return IdentifierNode(self.currentToken.value, self.memory.getItem(self.currentToken.value))
+            if self.currentToken.value in self.memory.get_all().keys():
+                return IdentifierNode(self.currentToken.value, self.memory.get_item(self.currentToken.value))
         elif self.currentToken.type == TokenType.MINUS:
             node = UnaryOpNode(type=TokenType.MINUS)
             self.advance()
@@ -155,19 +175,19 @@ class Parser():
             identifier = self.currentToken.value
             self.advance(by=2)
             value = self.parseE().eval() 
-            if self.memory.getItem(identifier) is None:
-                self.memory.addItem(identifier, value)
+            if self.memory.get_item(identifier) is None:
+                self.memory.add_item(identifier, value)
             else:
                 raise InvalidRedeclaration(f'\n\nVariable \'{identifier}\' has already been declared. Please rename your variable\n')
             node = IdentifierNode(identifier=identifier, value=value)
         return node
     
     def parseRedeclare(self) -> Node:
-        if self.memory.getItem(self.currentToken.value) is not None:
+        if self.memory.get_item(self.currentToken.value) is not None:
             identifier = self.currentToken.value
             self.advance(by=2)
             value = self.parseE().eval()
-            self.memory.addItem(identifier, value)
+            self.memory.add_item(identifier, value)
             return IdentifierNode(identifier=identifier, value=value)
         else:
             raise SyntaxError()
@@ -176,8 +196,8 @@ class Parser():
         whileMem = []
         self.advance()
         whileExpBool = self.parseBoolE().eval()
-        self.advance(by=2)
-        while self.currentToken.type != TokenType.RCURL and whileExpBool:
+        self.advance(by=1)
+        while self.currentToken.type != TokenType.RBRACKET and whileExpBool:
             # whileMem = whileMem.append(self.currentToken)
             whileMem.append(self.currentToken)
             self.advance()
@@ -270,8 +290,8 @@ class Parser():
         elif self.currentToken.type == TokenType.FLOAT:
             return NumberNode(value=float(self.currentToken.value))
         elif self.currentToken.type == TokenType.STR:
-            if self.currentToken.value in self.memory.getAll().keys():
-                return IdentifierNode(self.currentToken.value, self.memory.getItem(self.currentToken.value))
+            if self.currentToken.value in self.memory.get_all().keys():
+                return IdentifierNode(self.currentToken.value, self.memory.get_item(self.currentToken.value))
         elif self.currentToken.type == TokenType.MINUS:
             node = UnaryOpNode(type=TokenType.MINUS)
             self.advance()

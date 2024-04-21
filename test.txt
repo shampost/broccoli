@@ -1,10 +1,5 @@
 var a = 1
-var b = 2
-
-if (a<b){
-    b = 5
-    print b
+while a < 5 {
+    print a
+    a = 6 
 }
-
-print a + b
-print a - b

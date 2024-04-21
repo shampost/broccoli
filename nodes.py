@@ -1,7 +1,11 @@
+'''Nodes'''
 from typing import Union
 from tokens import TokenType
 
 class Node:
+    '''
+    # TODO: WRITE DOCSTRINGj 
+    '''
     def __init__(self) -> None:
         pass
 
@@ -13,6 +17,9 @@ class Node:
         pass
 
 class BinaryOpNode(Node):
+    '''
+    # TODO: WRITE DOCSTRINGj 
+    '''
     def __init__(self, type: TokenType) -> None:
         self.type: TokenType = type
         self.left: Node = None
