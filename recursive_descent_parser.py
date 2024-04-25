@@ -8,89 +8,108 @@ from errors import InvalidRedeclaration
 from memory import Memory
 
 class Parser():
-    # write docstring
-
+    '''
+    Parser class is a class that parses
+    the input and generates the AST.
+    
+    Methods:
+    1. parse: method for parsing the input
+    2. parseLine: method for parsing a line
+    3. parseE: method for parsing an expression
+    4. parseT: method for parsing a term
+    5. parseF: method for parsing a factor
+    6. parseId: method for parsing an identifier
+    7. parseRedeclare: method for parsing a redeclaration
+    8. parseWhile: method for parsing a while loop
+    9. parseIf: method for parsing an if statement
+    10. parseBoolE: method for parsing a boolean expression
+    11. parseBoolT: method for parsing a boolean term
+    12. parseBoolF: method for parsing a boolean factor
+    
+    Parameters:
+        memory: Memory
+    '''
     def __init__(self, memory: Memory) -> None:
         self.pos = 0
-        self.lineTokenList = []
-        self.allTokensList = None
-        self.rootNode: Node = None
-        self.currentToken: Token = None
+        self.line_token_list = []
+        self.all_tokens_list = None
+        self.root_node: Node = None
+        self.current_token: Token = None
         self.memory = memory
-        self.currentLine = None
+        self.current_line = None
 
-    def showInput(self):
-        print(self.rootNode)
-    
+    def show_input(self):
+        '''
+        Prints the root node
+        '''
+        print(self.root_node)
+
     def evaluate(self):
-        return self.rootNode.eval()
+        '''
+        Evaluates the root node
+        '''
+        return self.root_node.eval()
 
     def advance(self, by: int = 1):
+        '''
+        Advances the current token by the given number of steps.
+        '''
         self.pos += by
-        if self.pos < len(self.lineTokenList):
-            self.currentToken = self.lineTokenList[self.pos]
+        if self.pos < len(self.line_token_list):
+            self.current_token = self.line_token_list[self.pos]
 
-    def setTokens(self, tokenList: list[Token]):
+    def set_tokens(self, token_list: list[Token]):
+        '''
+        Sets the tokens for the parser
+        '''
         self.pos = 0
-        self.allTokensList = tokenList
-        self.currentToken = self.allTokensList[0][0]
+        self.all_tokens_list = token_list
+        self.current_token = self.all_tokens_list[0][0]
 
     def parse(self):
-        '''Uses grammar functions to parse input and set the rootNode'''
+        '''
+        Uses grammar functions to parse input and set the rootNode
+        '''
         i = 0
-        while i < len(self.allTokensList):
-            self.lineTokenList = self.allTokensList[i] 
+        while i < len(self.all_tokens_list):
+            self.line_token_list = self.all_tokens_list[i]
             self.pos = 0
-            self.currentToken = self.lineTokenList[0]
+            self.current_token = self.line_token_list[0]
             #try:
-            self.rootNode = self.parseLine()
-            if isinstance(self.rootNode, BoolNode):
-                if self.lineTokenList[0].type == TokenType.IF:
+            self.root_node = self.parse_line()
+            if isinstance(self.root_node, BoolNode):
+                if self.line_token_list[0].type == TokenType.IF:
                     if_block_tokens = []
-                    for j in range(i+1,len(self.allTokensList)):
-                        types = [token.type for token in self.allTokensList[j]]
+                    for j in range(i+1,len(self.all_tokens_list)):
+                        types = [token.type for token in self.all_tokens_list[j]]
                         if TokenType.RCURL in types:
                             i = j
                             break
-                        if_block_tokens.append(self.allTokensList[j])
-                    if self.rootNode.eval():
+                        if_block_tokens.append(self.all_tokens_list[j])
+                    if self.root_node.eval():
                         #return node from if block
                         if_parser = Parser(self.memory)
-                        if_parser.setTokens(if_block_tokens)
+                        if_parser.set_tokens(if_block_tokens)
                         if_parser.parse()
-                        self.rootNode = if_parser.rootNode
+                        self.root_node = if_parser.root_node
                 else:
                     if_block_tokens = []
-                    for j in range(i+1,len(self.allTokensList)):
-                        types = [token.type for token in self.allTokensList[j]]
+                    for j in range(i+1,len(self.all_tokens_list)):
+                        types = [token.type for token in self.all_tokens_list[j]]
                         if TokenType.RBRACKET in types:
                             i = j
                             break
-                        if_block_tokens.append(self.allTokensList[j])
-                    while self.rootNode.eval():
+                        if_block_tokens.append(self.all_tokens_list[j])
+                    while self.root_node.eval():
                         #return node from if block
                         if_parser = Parser(self.memory)
-                        if_parser.setTokens(if_block_tokens)
+                        if_parser.set_tokens(if_block_tokens)
                         if_parser.parse()
-                        self.rootNode = if_parser.rootNode
-                ifBlockTokens = []
-                for j in range(i+1,len(self.allTokensList)):
-                   
-                    types = map(lambda token: token.type, self.allTokensList[j])
-                    if TokenType.RCURL in types:
-                        i = j
-                        break
-                    ifBlockTokens.append(self.allTokensList[j])
-                if self.rootNode.eval():
-                    #return node from if block
-                    ifParser = Parser(self.memory)
-                    ifParser.setTokens(ifBlockTokens)
-                    ifParser.parse()
-                    self.rootNode = ifParser.rootNode
+                        self.root_node = if_parser.root_node
             #except SyntaxError as e:
                 #return e
             # print(i)
-            if self.currentToken != self.lineTokenList[-1]:
+            if self.current_token != self.line_token_list[-1]:
                 raise SyntaxError()
             i += 1
 
@@ -98,223 +117,250 @@ class Parser():
 ########################## GRAMMAR ###############################
 ##################################################################
 
-    def parseLine(self) -> Node:
-        # S -> E | VariableDec
-        
-        if self.currentToken.type == TokenType.ID:
-            return self.parseId()
-        elif len(self.lineTokenList) > 1 and self.lineTokenList[self.pos + 1].type == TokenType.EQUALS:
-            return self.parseRedeclare()
-        elif self.currentToken.type == TokenType.WHILE:
-            return self.parseIf()
-        elif self.currentToken.type == TokenType.IF:
-            return self.parseIf()
-        else:
-            return self.parseE()
-            
+    def parse_line(self) -> Node:
+        '''
+        S -> E | VariableDec
+        '''
 
-    def parseF(self) -> Node:
-        # F -> Number | identifier | -F
-        if self.currentToken.type == TokenType.LPAREN:
+        if self.current_token.type == TokenType.ID:
+            return self.parse_id()
+        if len(self.line_token_list) > 1 and self.line_token_list[self.pos + 1].type == TokenType.EQUALS:
+            return self.parse_redeclare()
+        if self.current_token.type == TokenType.WHILE:
+            return self.parse_if()
+        if self.current_token.type == TokenType.IF:
+            return self.parse_if()
+        #################DANGER ZONE#####################
+        if self.current_token.type == TokenType.PRINT:
             self.advance()
-            node = self.parseE()
-            self.advance()
-            if self.currentToken.type != TokenType.RPAREN:
-                raise SyntaxError()
-            return node
-        if self.currentToken.type == TokenType.INT:
-            return NumberNode(value=int(self.currentToken.value))
-        elif self.currentToken.type == TokenType.FLOAT:
-            return NumberNode(value=float(self.currentToken.value))
-        elif self.currentToken.type == TokenType.STR:
-            if self.currentToken.value in self.memory.get_all().keys():
-                return IdentifierNode(self.currentToken.value, self.memory.get_item(self.currentToken.value))
-        elif self.currentToken.type == TokenType.MINUS:
-            node = UnaryOpNode(type=TokenType.MINUS)
-            self.advance()
-            node.child = self.parseF()
-            return node
-        #Add more grammar rules here
-        raise SyntaxError()
-        
-    def parseT(self) -> Node:
-        # T -> F * T | F / T | F
-        F = self.parseF()
-        self.advance()
-        if self.currentToken.type == TokenType.MULT:
-            node = BinaryOpNode(type=TokenType.MULT)
-            node.left = F
-            self.advance()
-            node.right = self.parseT()
-            return node
-        elif self.currentToken.type == TokenType.DIV:
-            node = BinaryOpNode(type=TokenType.DIV)
-            node.left = F
-            self.advance()
-            node.right = self.parseT()
-            return node
-        self.advance(by=-1)
-        return F
+            print_node = self.pares_e()
+            print(print_node.eval())
+            return print_node
+        #################################################
+        return self.pares_e()
 
-    def parseE(self) -> Node:
-        # E -> T + E | T - E | T
-        T = self.parseT()
+    def pares_e(self) -> Node:
+        '''
+        E -> T + E | T - E | T
+        '''
+        T = self.parse_t()
         self.advance()
-        if self.currentToken.type == TokenType.PLUS:
-            node = BinaryOpNode(type=TokenType.PLUS)
+        if self.current_token.type == TokenType.PLUS:
+            node = BinaryOpNode(ttype=TokenType.PLUS)
             node.left = T
             self.advance()
-            node.right = self.parseE()
+            node.right = self.pares_e()
             return node
-        elif self.currentToken.type == TokenType.MINUS:
-            node = BinaryOpNode(type=TokenType.MINUS)
+        if self.current_token.type == TokenType.MINUS:
+            node = BinaryOpNode(ttype=TokenType.MINUS)
             node.left = T
             self.advance()
-            node.right = self.parseE()
+            node.right = self.pares_e()
             return node
         self.advance(by=-1)
         return T
 
-    def parseId(self) -> Node:
-        #let id = num
-        if self.currentToken.type == TokenType.ID:
+    def parse_f(self) -> Node:
+        '''
+        F -> Number | identifier | -F
+        '''
+        if self.current_token.type == TokenType.LPAREN:
             self.advance()
-            identifier = self.currentToken.value
+            node = self.pares_e()
+            self.advance()
+            if self.current_token.type != TokenType.RPAREN:
+                raise SyntaxError()
+            return node
+        if self.current_token.type == TokenType.INT:
+            return NumberNode(value=int(self.current_token.value))
+        if self.current_token.type == TokenType.FLOAT:
+            return NumberNode(value=float(self.current_token.value))
+        if self.current_token.type == TokenType.STR:
+            if self.current_token.value in self.memory.get_all().keys():
+                return IdentifierNode(self.current_token.value, self.memory.get_item(self.current_token.value))
+        if self.current_token.type == TokenType.MINUS:
+            node = UnaryOpNode(ttype=TokenType.MINUS)
+            self.advance()
+            node.child = self.parse_f()
+            return node
+        #Add more grammar rules here
+        raise SyntaxError()
+
+    def parse_t(self) -> Node:
+        '''
+        T -> F * T | F / T | F
+        '''
+        F = self.parse_f()
+        self.advance()
+        if self.current_token.type == TokenType.MULT:
+            node = BinaryOpNode(ttype=TokenType.MULT)
+            node.left = F
+            self.advance()
+            node.right = self.parse_t()
+            return node
+        if self.current_token.type == TokenType.DIV:
+            node = BinaryOpNode(ttype=TokenType.DIV)
+            node.left = F
+            self.advance()
+            node.right = self.parse_t()
+            return node
+        self.advance(by=-1)
+        return F
+
+    def parse_id(self) -> Node:
+        '''
+        let id = num
+        '''
+        if self.current_token.type == TokenType.ID:
+            self.advance()
+            identifier = self.current_token.value
             self.advance(by=2)
-            value = self.parseE().eval() 
+            value = self.pares_e().eval()
             if self.memory.get_item(identifier) is None:
                 self.memory.add_item(identifier, value)
             else:
                 raise InvalidRedeclaration(f'\n\nVariable \'{identifier}\' has already been declared. Please rename your variable\n')
             node = IdentifierNode(identifier=identifier, value=value)
         return node
-    
-    def parseRedeclare(self) -> Node:
-        if self.memory.get_item(self.currentToken.value) is not None:
-            identifier = self.currentToken.value
+
+    def parse_redeclare(self) -> Node:
+        '''
+        var id = num
+        '''
+        if self.memory.get_item(self.current_token.value) is not None:
+            identifier = self.current_token.value
             self.advance(by=2)
-            value = self.parseE().eval()
+            value = self.pares_e().eval()
             self.memory.add_item(identifier, value)
             return IdentifierNode(identifier=identifier, value=value)
-        else:
-            raise SyntaxError()
+        raise SyntaxError()
 
-    def parseWhile(self) -> Node:
-        whileMem = []
+    def parse_while(self) -> Node:
+        '''
+        while (boolE) { S }
+        '''
+        while_mem = []
         self.advance()
-        whileExpBool = self.parseBoolE().eval()
+        while_exp_bool = self.parse_bool_e().eval()
         self.advance(by=1)
-        while self.currentToken.type != TokenType.RBRACKET and whileExpBool:
+        while self.current_token.type != TokenType.RBRACKET and while_exp_bool:
             # whileMem = whileMem.append(self.currentToken)
-            whileMem.append(self.currentToken)
+            while_mem.append(self.current_token)
             self.advance()
-        boolParser = Parser(memory=self.memory)
-        boolParser.setTokens(whileMem)
-        boolParser.parse()
-            
-        # if self.currentToken.type == TokenType.LPAREN: 
+        bool_parser = Parser(memory=self.memory)
+        bool_parser.set_tokens(while_mem)
+        bool_parser.parse()
+
+        # if self.currentToken.type == TokenType.LPAREN:
         #     try:
         #         whileExpBool = self.parseBoolE().eval()
         #     except SyntaxError:
         #         print(f'Invalid Syntax')
 
-    def parseIf(self) -> Node:
+    def parse_if(self) -> Node:
+        '''
+        if (boolE) { S }
+        '''
         self.advance()
-        boolNode = self.parseBoolE()
+        bool_node = self.parse_bool_e()
         self.advance()
-        if self.currentToken.type != TokenType.LCURL:
+        if self.current_token.type != TokenType.LCURL:
             raise SyntaxError()
-        return boolNode
-        
-    
-    def parseBoolE(self) -> BoolNode:
-        # E -> T || E     T && E       !E        T
-        T = self.parseBoolT()
+        return bool_node
+
+    def parse_bool_e(self) -> BoolNode:
+        '''
+        E -> T || E     T && E       !E        T
+        '''
+        T = self.parse_bool_t()
         self.advance()
-        if self.currentToken.type == TokenType.OR:
-            node = BoolNode(type=TokenType.OR)
+        if self.current_token.type == TokenType.OR:
+            node = BoolNode(ttype=TokenType.OR)
             node.left = T
             self.advance()
-            node.right = self.parseBoolE()
+            node.right = self.parse_bool_e()
             return node
-        elif self.currentToken.type == TokenType.AND:
-            node = BoolNode(type=TokenType.AND)
+        if self.current_token.type == TokenType.AND:
+            node = BoolNode(ttype=TokenType.AND)
             node.left = T
             self.advance()
-            node.right = self.parseBoolE()
+            node.right = self.parse_bool_e()
             return node
         self.advance(by=-1)
         return T
 
-    def parseBoolT(self) -> BoolNode:
-        # T -> F == T     F < T     F <= T     F > T     F >= T     F
-        F = self.parseBoolF()
+    def parse_bool_t(self) -> BoolNode:
+        '''
+        T -> F == T     F < T     F <= T     F > T     F >= T     F
+        '''
+        F = self.parse_bool_f()
         self.advance()
-        if self.currentToken.type == TokenType.TWOEQ:
-            node = BoolNode(type=TokenType.TWOEQ)
+        if self.current_token.type == TokenType.TWOEQ:
+            node = BoolNode(ttype=TokenType.TWOEQ)
             node.left = F
             self.advance()
-            node.right = self.parseBoolT()
+            node.right = self.parse_bool_t()
             return node
-        elif self.currentToken.type == TokenType.LESS:
-            node = BoolNode(type=TokenType.LESS)
+        if self.current_token.type == TokenType.LESS:
+            node = BoolNode(ttype=TokenType.LESS)
             node.left = F
             self.advance()
-            node.right = self.parseBoolT()
+            node.right = self.parse_bool_t()
             return node
-        elif self.currentToken.type == TokenType.GREATER:
-            node = BoolNode(type=TokenType.GREATER)
+        if self.current_token.type == TokenType.GREATER:
+            node = BoolNode(ttype=TokenType.GREATER)
             node.left = F
             self.advance()
-            node.right = self.parseBoolT()
+            node.right = self.parse_bool_t()
             return node
-        elif self.currentToken.type == TokenType.LESSEQ:
-            node = BoolNode(type=TokenType.LESSEQ)
+        if self.current_token.type == TokenType.LESSEQ:
+            node = BoolNode(ttype=TokenType.LESSEQ)
             node.left = F
             self.advance()
-            node.right = self.parseBoolT()
+            node.right = self.parse_bool_t()
             return node
-        elif self.currentToken.type == TokenType.GREATEREQ:
-            node = BoolNode(type=TokenType.GREATEREQ)
+        if self.current_token.type == TokenType.GREATEREQ:
+            node = BoolNode(ttype=TokenType.GREATEREQ)
             node.left = F
             self.advance()
-            node.right = self.parseBoolT()
+            node.right = self.parse_bool_t()
             return node
         self.advance(by=-1)
         return F
 
-    def parseBoolF(self) -> Node:
-        # F -> Number     Identifier     !F      True       False 
-        if self.currentToken.type == TokenType.LPAREN:
+    def parse_bool_f(self) -> Node:
+        '''
+        F -> Number     Identifier     !F      True       False 
+        '''
+        if self.current_token.type == TokenType.LPAREN:
             self.advance()
-            node = self.parseBoolE()
+            node = self.parse_bool_e()
             self.advance()
-            if self.currentToken.type != TokenType.RPAREN:
+            if self.current_token.type != TokenType.RPAREN:
                 raise SyntaxError()
             return node
-        if self.currentToken.type == TokenType.INT:
-            return NumberNode(value=int(self.currentToken.value))
-        elif self.currentToken.type == TokenType.FLOAT:
-            return NumberNode(value=float(self.currentToken.value))
-        elif self.currentToken.type == TokenType.STR:
-            if self.currentToken.value in self.memory.get_all().keys():
-                return IdentifierNode(self.currentToken.value, self.memory.get_item(self.currentToken.value))
-        elif self.currentToken.type == TokenType.MINUS:
-            node = UnaryOpNode(type=TokenType.MINUS)
+        if self.current_token.type == TokenType.INT:
+            return NumberNode(value=int(self.current_token.value))
+        if self.current_token.type == TokenType.FLOAT:
+            return NumberNode(value=float(self.current_token.value))
+        if self.current_token.type == TokenType.STR:
+            if self.current_token.value in self.memory.get_all().keys():
+                return IdentifierNode(self.current_token.value, self.memory.get_item(self.current_token.value))
+        if self.current_token.type == TokenType.MINUS:
+            node = UnaryOpNode(ttype=TokenType.MINUS)
             self.advance()
-            node.child = self.parseBoolF()
+            node.child = self.parse_bool_f()
             return node
-        elif self.currentToken.type == TokenType.TRUE:
+        if self.current_token.type == TokenType.TRUE:
             return BoolLiteralNode(value=True)
-        elif self.currentToken.type == TokenType.FALSE:
+        if self.current_token.type == TokenType.FALSE:
             return BoolLiteralNode(value=False)
-        elif self.currentToken.type == TokenType.NOT:
+        if self.current_token.type == TokenType.NOT:
             self.advance()
-            node = self.parseBoolF()
+            node = self.parse_bool_f()
             if node.eval():
                 return BoolLiteralNode(value=False)
-            else:
-                return BoolLiteralNode(value=True)
+            return BoolLiteralNode(value=True)
         #Add more grammar rules here
         raise SyntaxError()
 

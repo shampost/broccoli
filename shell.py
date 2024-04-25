@@ -1,5 +1,5 @@
 '''
-Shell
+SHELL
 '''
 from lexer import Lexer
 from memory import Memory
@@ -10,11 +10,10 @@ memory = Memory()
 parser = Parser(memory)
 
 FILENAME = "test.txt"
-with open(FILENAME, 'r') as file:
+with open(FILENAME, 'r', encoding='utf-8') as file:
     text = file.read()
 lexer = Lexer(text)
 tokenList = lexer.tokenize() # this call should not be needed?
 #print(tokenList)
-parser.setTokens(tokenList)
+parser.set_tokens(tokenList)
 parser.parse()
-print(f'>> {parser.evaluate()}')

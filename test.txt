@@ -1,8 +1,7 @@
-var a = 1
-var b = 2
+var a = 3
+var b = 3
+var c = 23.2.3.2
 
-if (a>b){
-    b = 5
-}
-
-a + b
+print a + b
+print b + a
+print c
