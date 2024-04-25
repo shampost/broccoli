@@ -6,6 +6,7 @@ from errors import (
     UnmatchedBracketException,
 )
 from memory import Memory
+from errors import InvalidCharacterException, NoValidTokenException, UnmatchedParenthesesException
 
 
 class Lexer:
@@ -100,8 +101,6 @@ class Lexer:
                     return Token(TokenType.TRUE)
                 elif word == "False":
                     return Token(TokenType.FALSE)
-                elif word == "print":
-                    return Token(TokenType.PRINT)
                 else:
                     return Token(TokenType.STR, value=word)
             elif self.current_char == "+":

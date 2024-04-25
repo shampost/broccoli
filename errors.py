@@ -16,6 +16,7 @@ class UnmatchedBracketException(Exception):
     '''
     # TODO: write docstring
     '''
+class UnmatchedParenthesesException(Exception):
     #Raised when a combination of valid characters does not make up a valid token.
 
 class InvalidRedeclaration(Exception):

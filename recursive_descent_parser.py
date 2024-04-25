@@ -73,6 +73,20 @@ class Parser():
                         if_parser.setTokens(if_block_tokens)
                         if_parser.parse()
                         self.rootNode = if_parser.rootNode
+                ifBlockTokens = []
+                for j in range(i+1,len(self.allTokensList)):
+                   
+                    types = map(lambda token: token.type, self.allTokensList[j])
+                    if TokenType.RCURL in types:
+                        i = j
+                        break
+                    ifBlockTokens.append(self.allTokensList[j])
+                if self.rootNode.eval():
+                    #return node from if block
+                    ifParser = Parser(self.memory)
+                    ifParser.setTokens(ifBlockTokens)
+                    ifParser.parse()
+                    self.rootNode = ifParser.rootNode
             #except SyntaxError as e:
                 #return e
             # print(i)
@@ -95,34 +109,8 @@ class Parser():
             return self.parseIf()
         elif self.currentToken.type == TokenType.IF:
             return self.parseIf()
-        #################DANGER ZONE#####################
-        elif self.currentToken.type == TokenType.PRINT:
-            self.advance()
-            print_node = self.parseE()
-            print(print_node.eval())
-            return print_node 
-        #################################################
         else:
             return self.parseE()
-        
-    def parseE(self) -> Node:
-        # E -> T + E | T - E | T
-        T = self.parseT()
-        self.advance()
-        if self.currentToken.type == TokenType.PLUS:
-            node = BinaryOpNode(type=TokenType.PLUS)
-            node.left = T
-            self.advance()
-            node.right = self.parseE()
-            return node
-        elif self.currentToken.type == TokenType.MINUS:
-            node = BinaryOpNode(type=TokenType.MINUS)
-            node.left = T
-            self.advance()
-            node.right = self.parseE()
-            return node
-        self.advance(by=-1)
-        return T
             
 
     def parseF(self) -> Node:
@@ -167,6 +155,25 @@ class Parser():
             return node
         self.advance(by=-1)
         return F
+
+    def parseE(self) -> Node:
+        # E -> T + E | T - E | T
+        T = self.parseT()
+        self.advance()
+        if self.currentToken.type == TokenType.PLUS:
+            node = BinaryOpNode(type=TokenType.PLUS)
+            node.left = T
+            self.advance()
+            node.right = self.parseE()
+            return node
+        elif self.currentToken.type == TokenType.MINUS:
+            node = BinaryOpNode(type=TokenType.MINUS)
+            node.left = T
+            self.advance()
+            node.right = self.parseE()
+            return node
+        self.advance(by=-1)
+        return T
 
     def parseId(self) -> Node:
         #let id = num

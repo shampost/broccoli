@@ -1,5 +1,8 @@
 var a = 1
-while a < 5 {
-    print a
-    a = 6 
+var b = 2
+
+if (a>b){
+    b = 5
 }
+
+a + b
