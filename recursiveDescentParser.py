@@ -40,6 +40,7 @@ class Parser():
             #try:
             self.rootNode = self.parseLine()
             if isinstance(self.rootNode, BoolNode):
+                boolConditionLine = self.lineTokenList
                 ifBlockTokens = []
                 for j in range(i+1,len(self.allTokensList)):
                     types = [token.type for token in self.allTokensList[j]]
@@ -47,12 +48,26 @@ class Parser():
                         i = j
                         break
                     ifBlockTokens.append(self.allTokensList[j])
-                if self.rootNode.eval():
-                    #return node from if block
-                    ifParser = Parser(self.memory)
-                    ifParser.setTokens(ifBlockTokens)
-                    ifParser.parse()
-                    self.rootNode = ifParser.rootNode
+                
+                
+                if self.lineTokenList[0].type == TokenType.IF:
+                    if self.rootNode.eval():
+                        #return node from if block
+                        ifParser = Parser(self.memory)
+                        ifParser.setTokens(ifBlockTokens)
+                        ifParser.parse()
+                        #self.rootNode = ifParser.rootNode
+                elif self.lineTokenList[0].type == TokenType.WHILE:
+                    while self.rootNode.eval():
+                        #return node from if block
+                        ifParser = Parser(self.memory)
+                        ifParser.setTokens(ifBlockTokens)
+                        ifParser.parse()
+
+                        self.pos = 0 
+                        self.currentToken = self.lineTokenList[0]
+                        self.rootNode = self.parseCondition()
+                self.rootNode = ifParser.rootNode
             #except SyntaxError as e:
                 #return e
             # print(i)
@@ -72,9 +87,9 @@ class Parser():
         elif len(self.lineTokenList) > 1 and self.lineTokenList[self.pos + 1].type == TokenType.EQUALS:
             return self.parseRedeclare()
         elif self.currentToken.type == TokenType.WHILE:
-            return self.parseWhile()
+            return self.parseCondition()
         elif self.currentToken.type == TokenType.IF:
-            return self.parseIf()
+            return self.parseCondition()
         #################DANGER ZONE#####################
         elif self.currentToken.type == TokenType.PRINT:
             self.advance()
@@ -191,7 +206,7 @@ class Parser():
         #     except SyntaxError:
         #         print(f'Invalid Syntax')
 
-    def parseIf(self) -> Node:
+    def parseCondition(self) -> Node:
         self.advance()
         boolNode = self.parseBoolE()
         self.advance()
