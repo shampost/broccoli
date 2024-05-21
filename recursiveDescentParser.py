@@ -12,6 +12,7 @@ class Parser():
         self.rootNode: Node = None
         self.currentToken: Token = None
         self.memory = memory
+        self.currentLine = None
 
     def showInput(self):
         print(self.rootNode)
@@ -31,16 +32,48 @@ class Parser():
 
     def parse(self):
         '''Uses grammar functions to parse input and set the rootNode'''
-        for i in range(len(self.allTokensList)):
+        i = 0
+        while i < len(self.allTokensList):
             self.lineTokenList = self.allTokensList[i] 
             self.pos = 0 
             self.currentToken = self.lineTokenList[0]
-            try:
-                self.rootNode = self.parseLine()
-            except SyntaxError as e:
-                return e
+            #try:
+            self.rootNode = self.parseLine()
+            if isinstance(self.rootNode, BoolNode):
+                boolConditionLine = self.lineTokenList
+                ifBlockTokens = []
+                for j in range(i+1,len(self.allTokensList)):
+                    types = [token.type for token in self.allTokensList[j]]
+                    if TokenType.RCURL in types:
+                        i = j
+                        break
+                    ifBlockTokens.append(self.allTokensList[j])
+                
+                
+                if self.lineTokenList[0].type == TokenType.IF:
+                    if self.rootNode.eval():
+                        #return node from if block
+                        ifParser = Parser(self.memory)
+                        ifParser.setTokens(ifBlockTokens)
+                        ifParser.parse()
+                        #self.rootNode = ifParser.rootNode
+                elif self.lineTokenList[0].type == TokenType.WHILE:
+                    while self.rootNode.eval():
+                        #return node from if block
+                        ifParser = Parser(self.memory)
+                        ifParser.setTokens(ifBlockTokens)
+                        ifParser.parse()
+
+                        self.pos = 0 
+                        self.currentToken = self.lineTokenList[0]
+                        self.rootNode = self.parseCondition()
+                self.rootNode = ifParser.rootNode
+            #except SyntaxError as e:
+                #return e
+            # print(i)
             if self.currentToken != self.lineTokenList[-1]:
                 raise SyntaxError()
+            i += 1
 
 ##################################################################
 ########################## GRAMMAR ###############################
@@ -54,11 +87,37 @@ class Parser():
         elif len(self.lineTokenList) > 1 and self.lineTokenList[self.pos + 1].type == TokenType.EQUALS:
             return self.parseRedeclare()
         elif self.currentToken.type == TokenType.WHILE:
-            return self.parseWhile()
+            return self.parseCondition()
         elif self.currentToken.type == TokenType.IF:
-            return self.parseIf()
+            return self.parseCondition()
+        #################DANGER ZONE#####################
+        elif self.currentToken.type == TokenType.PRINT:
+            self.advance()
+            print_node = self.parseE()
+            print(print_node.eval())
+            return print_node 
+        #################################################
         else:
             return self.parseE()
+        
+    def parseE(self) -> Node:
+        # E -> T + E | T - E | T
+        T = self.parseT()
+        self.advance()
+        if self.currentToken.type == TokenType.PLUS:
+            node = BinaryOpNode(type=TokenType.PLUS)
+            node.left = T
+            self.advance()
+            node.right = self.parseE()
+            return node
+        elif self.currentToken.type == TokenType.MINUS:
+            node = BinaryOpNode(type=TokenType.MINUS)
+            node.left = T
+            self.advance()
+            node.right = self.parseE()
+            return node
+        self.advance(by=-1)
+        return T
             
 
     def parseF(self) -> Node:
@@ -104,25 +163,6 @@ class Parser():
         self.advance(by=-1)
         return F
 
-    def parseE(self) -> Node:
-        # E -> T + E | T - E | T
-        T = self.parseT()
-        self.advance()
-        if self.currentToken.type == TokenType.PLUS:
-            node = BinaryOpNode(type=TokenType.PLUS)
-            node.left = T
-            self.advance()
-            node.right = self.parseE()
-            return node
-        elif self.currentToken.type == TokenType.MINUS:
-            node = BinaryOpNode(type=TokenType.MINUS)
-            node.left = T
-            self.advance()
-            node.right = self.parseE()
-            return node
-        self.advance(by=-1)
-        return T
-
     def parseId(self) -> Node:
         #let id = num
         if self.currentToken.type == TokenType.ID:
@@ -148,12 +188,32 @@ class Parser():
             raise SyntaxError()
 
     def parseWhile(self) -> Node:
+        whileMem = []
         self.advance()
-        return self.parseBoolE()
+        whileExpBool = self.parseBoolE().eval()
+        self.advance(by=2)
+        while self.currentToken.type != TokenType.RCURL and whileExpBool:
+            # whileMem = whileMem.append(self.currentToken)
+            whileMem.append(self.currentToken)
+            self.advance()
+        boolParser = Parser(memory=self.memory)
+        boolParser.setTokens(whileMem)
+        boolParser.parse()
+            
+        # if self.currentToken.type == TokenType.LPAREN: 
+        #     try:
+        #         whileExpBool = self.parseBoolE().eval()
+        #     except SyntaxError:
+        #         print(f'Invalid Syntax')
 
-    def parseIf(self) -> Node:
+    def parseCondition(self) -> Node:
         self.advance()
-        return self.parseBoolE()
+        boolNode = self.parseBoolE()
+        self.advance()
+        if self.currentToken.type != TokenType.LCURL:
+            raise SyntaxError()
+        return boolNode
+        
     
     def parseBoolE(self) -> BoolNode:
         # E -> T || E     T && E       !E        T
@@ -212,7 +272,7 @@ class Parser():
         return F
 
     def parseBoolF(self) -> Node:
-        # F -> Number     Identifier     -F      True       False 
+        # F -> Number     Identifier     !F      True       False 
         if self.currentToken.type == TokenType.LPAREN:
             self.advance()
             node = self.parseBoolE()

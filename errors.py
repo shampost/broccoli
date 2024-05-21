@@ -6,7 +6,7 @@ class NoValidTokenException(Exception):
     #Raised when a combination of valid characters does not make up a valid token.
     pass
 
-class UnmatchedParenthesesException(Exception):
+class UnmatchedBracketException(Exception):
     #Raised when a combination of valid characters does not make up a valid token.
     pass
 

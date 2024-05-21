@@ -1,6 +1,6 @@
 from tokens import Token, TokenType
 from memory import Memory
-from errors import InvalidCharacterException, NoValidTokenException, UnmatchedParenthesesException
+from errors import InvalidCharacterException, NoValidTokenException, UnmatchedBracketException
 
 
 class Lexer:
@@ -12,6 +12,7 @@ class Lexer:
         self.allTokens = []
         self.lineCount = 1
         self.parenCounter = 0
+        self.curlCounter = 0
 
     def advance(self, by: int = 1):
         self.pos += by
@@ -77,6 +78,8 @@ class Lexer:
                     return Token(TokenType.TRUE)
                 elif word == "False":
                     return Token(TokenType.FALSE)
+                elif word == "print":
+                    return Token(TokenType.PRINT)
                 else:
                     return Token(TokenType.STR, value=word)
             elif self.current_char == '+':
@@ -100,8 +103,10 @@ class Lexer:
                 self.parenCounter -= 1 
                 return Token(TokenType.RPAREN)
             elif self.current_char == "{":
+                self.curlCounter += 1
                 return Token(TokenType.LCURL)
             elif self.current_char == "}":
+                self.curlCounter -= 1
                 return Token(TokenType.RCURL)
             elif self.current_char == "[":
                 return Token(TokenType.LBRACKET)
@@ -137,7 +142,8 @@ class Lexer:
                 continue
             elif self.current_char == '\n':
                 self.lineCount += 1
-                self.allTokens.append(self.lineTokens)
+                if len(self.lineTokens) != 0:
+                    self.allTokens.append(self.lineTokens)
                 self.lineTokens = []
                 self.advance()
                 continue
@@ -147,8 +153,8 @@ class Lexer:
             except Exception as e: 
                 return e
         self.divToMult()
-        if self.parenCounter != 0:
-            raise UnmatchedParenthesesException(f'Missing parentheses on line {self.lineCount}')
+        if self.parenCounter != 0 or self.curlCounter != 0:
+            raise UnmatchedBracketException(f'Missing parentheses on line {self.lineCount}')
         if len(self.lineTokens) != 0:
             self.allTokens.append(self.lineTokens)
             self.lineTokens = []
