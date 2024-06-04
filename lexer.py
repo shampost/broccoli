@@ -91,6 +91,9 @@ class Lexer:
             elif self.current_char == '/':
                 return Token(TokenType.DIV) 
             elif self.current_char == "=":
+                if self.text[self.pos + 1] == "=": # Handles == case
+                    self.advance()
+                    return Token(TokenType.TWOEQ) 
                 return Token(TokenType.EQUALS)
             elif self.current_char == ":":
                 return Token(TokenType.COLON)
@@ -116,16 +119,16 @@ class Lexer:
                 return Token(TokenType.QUOTE)
             elif self.current_char == "\n":
                 return Token(TokenType.NEWLINE)
-            elif self.current_char == "==":
-                return Token(TokenType.TWOEQ)
             elif self.current_char == "<":
+                if self.text[self.pos + 1] == "=": # Handles <= case
+                    self.advance()
+                    return Token(TokenType.LESSEQ) 
                 return Token(TokenType.LESS)
-            elif self.current_char == "<=":
-                return Token(TokenType.LESSEQ)
             elif self.current_char == ">":
+                if self.text[self.pos + 1] == "=": # Handles >= case
+                    self.advance()
+                    return Token(TokenType.GREATEREQ) 
                 return Token(TokenType.GREATER)
-            elif self.current_char == ">=":
-                return Token(TokenType.GREATEREQ)
             elif self.current_char == "|":
                 return Token(TokenType.OR)
             elif self.current_char == "&":
