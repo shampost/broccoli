@@ -1,7 +1,11 @@
 var a = 2
 var b = 7
+var c = 343452
+
 
 while (a<b){
-    a = a + 1
-    print a
+    while(a<5){
+        print c
+        a = a + 1
+    }  
 }
