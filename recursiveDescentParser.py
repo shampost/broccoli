@@ -72,7 +72,7 @@ class Parser():
                         self.pos = 0 
                         self.currentToken = self.lineTokenList[0]
                         self.rootNode = self.parseCondition()
-                self.rootNode = ifParser.rootNode
+                #self.rootNode = ifParser.rootNode
             #except SyntaxError as e:
                 #return e
             # print(i)
