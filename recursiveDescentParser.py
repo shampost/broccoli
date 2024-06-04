@@ -33,22 +33,27 @@ class Parser():
     def parse(self):
         '''Uses grammar functions to parse input and set the rootNode'''
         i = 0
+        ifParser = None
         while i < len(self.allTokensList):
             self.lineTokenList = self.allTokensList[i] 
             self.pos = 0 
             self.currentToken = self.lineTokenList[0]
             #try:
             self.rootNode = self.parseLine()
+            paren_count = 0
             if isinstance(self.rootNode, BoolNode):
-                boolConditionLine = self.lineTokenList
                 ifBlockTokens = []
+                paren_count += 1 # for the first \{
                 for j in range(i+1,len(self.allTokensList)):
                     types = [token.type for token in self.allTokensList[j]]
+                    if TokenType.LCURL in types:
+                        paren_count += 1
                     if TokenType.RCURL in types:
-                        i = j
-                        break
+                        paren_count -= 1
+                        if paren_count == 0:
+                            i = j
+                            break
                     ifBlockTokens.append(self.allTokensList[j])
-                
                 
                 if self.lineTokenList[0].type == TokenType.IF:
                     if self.rootNode.eval():
@@ -67,7 +72,7 @@ class Parser():
                         self.pos = 0 
                         self.currentToken = self.lineTokenList[0]
                         self.rootNode = self.parseCondition()
-                self.rootNode = ifParser.rootNode
+                #self.rootNode = ifParser.rootNode
             #except SyntaxError as e:
                 #return e
             # print(i)
