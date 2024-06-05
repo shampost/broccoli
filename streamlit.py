@@ -27,7 +27,6 @@ def onClick(filename):
     print(tokenList)
     parser.setTokens(tokenList)
     parser.parse()
-    st.header(parser.evaluate())
 
 def hitEnter(line: str):
     updateMemory()
@@ -71,3 +70,7 @@ with tab2:
     #File upload stuff here
     filename = st.file_uploader("Upload a file", type="txt")
     onClick(filename)
+    with open('output.txt', 'r') as file:
+        for line in file:
+            st.write(line)
+    open('output.txt', 'w').close()

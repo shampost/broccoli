@@ -99,7 +99,7 @@ class Parser():
         elif self.currentToken.type == TokenType.PRINT:
             self.advance()
             print_node = self.parseE()
-            print(print_node.eval())
+            print(print_node.eval(), file=open("output.txt", "a"))
             return print_node 
         #################################################
         else:
